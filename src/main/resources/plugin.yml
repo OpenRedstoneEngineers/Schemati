@@ -1,0 +1,5 @@
+name: Schemati
+version: 1.0-SNAPSHOT
+main: schemati.Schemati
+api-version: 1.14
+depend: [WorldEdit]
