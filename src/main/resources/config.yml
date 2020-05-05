@@ -1,0 +1,19 @@
+web:
+  proxied: false
+  port: 8080
+  host: "localhost"
+  oauth:
+    clientId: "***"
+    clientSecret: "***"
+    scopes:
+      - "identify"
+
+database:
+  port: 3306
+  host: "localhost"
+  database: "***"
+  username: "***"
+  password: "***"
+
+# Some folder the server can read/write to
+schematicsDirectory: "./"

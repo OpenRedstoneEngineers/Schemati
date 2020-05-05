@@ -9,7 +9,12 @@ plugins {
 group = ""
 version = "1.0-SNAPSHOT"
 
+var ktor_version = "1.3.2"
+
 repositories {
+
+    jcenter()
+
     mavenCentral()
     maven {
         name = "spigotmc-repo"
@@ -24,6 +29,10 @@ repositories {
         url = uri("http://maven.enginehub.org/repo/")
     }
     maven {
+        name = "myndocs-oauth2"
+        url = uri("https://dl.bintray.com/adhesivee/oauth2-server")
+    }
+    maven {
         name = "aikar"
         url = uri("https://repo.aikar.co/content/groups/aikar/")
     }
@@ -32,6 +41,16 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(group = "co.aikar", name = "acf-paper", version = "0.5.0-SNAPSHOT")
+
+    implementation(group = "io.ktor", name = "ktor-server-netty", version = "1.3.2")
+    implementation(group = "io.ktor", name = "ktor-auth", version = "1.3.2")
+    implementation(group = "io.ktor", name = "ktor-client-apache", version = "1.3.2")
+    implementation(group = "io.ktor", name = "ktor-html-builder", version = "1.3.2")
+
+    implementation(group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version = "2.11.0")
+
+    implementation(group = "mysql", name = "mysql-connector-java", version = "8.0.20")
+    implementation(group = "com.vladsch.kotlin-jdbc", name = "kotlin-jdbc", version = "0.5.0")
 
     compileOnly(group = "org.spigotmc", name = "spigot-api", version = "1.15.1-R0.1-SNAPSHOT")
     compileOnly(group = "com.sk89q.worldedit", name = "worldedit-bukkit", version = "7.1.0-SNAPSHOT")
