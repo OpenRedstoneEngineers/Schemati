@@ -47,6 +47,8 @@ dependencies {
     implementation(group = "io.ktor", name = "ktor-client-apache", version = "1.3.2")
     implementation(group = "io.ktor", name = "ktor-html-builder", version = "1.3.2")
 
+    implementation(group = "org.jetbrains", name = "kotlin-css", version = "1.0.0-pre.104-kotlin-1.3.72")
+
     implementation(group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version = "2.11.0")
 
     implementation(group = "mysql", name = "mysql-connector-java", version = "8.0.20")
