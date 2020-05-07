@@ -1,135 +1,56 @@
 package schemati.web
 
 import io.ktor.html.*
-import kotlinx.css.*
-import kotlinx.css.Float
-import kotlinx.css.properties.BoxShadow
-import kotlinx.css.properties.BoxShadows
-import kotlinx.css.properties.TextDecoration
 import kotlinx.html.*
+import java.io.File
 
-fun getStyle(): String {
-    return CSSBuilder().apply {
-        body {
-            marginTop = 50.px
-            backgroundColor = Color("#ffcdd2")
-            fontFamily = "'Montserrat', sans-serif"
-        }
-        i {
-            color = Color("#212121")
-        }
-        hr {
-            width = LinearDimension("80%")
-            border = "0px"
-            borderTop = "1px solid #e0e0e0"
-        }
-        h2 {
-            textAlign = TextAlign.center
-        }
-        p {
-            width = LinearDimension("100%")
-            textAlign = TextAlign.center
-        }
-        a {
-            textDecoration = TextDecoration.none
-        }
-        ".center" {
-            margin = "auto"
-            width = LinearDimension.fitContent
-        }
-        ".fas" {
-            color = Color("#ff5555")
-        }
-        "#discordLoginIcon" {
-            width = 100.px
-            verticalAlign = VerticalAlign.bottom
-        }
-        "#fileListing" {
-            listStyleType = ListStyleType.none
-            margin = "0px"
-            padding = "0px"
-        }
-        ".fileEntry" {
-            paddingTop = 5.px
-            paddingRight = 10.px
-            paddingBottom = 5.px
-            paddingLeft = 10.px
-            minHeight = 40.px
-        }
-        ".generalButton" {
-            color = Color.initial
-            backgroundColor = Color("#e57373")
-            border = "none"
-            borderRadius = 3.px
-            padding = "10px"
-            verticalAlign = VerticalAlign.middle
-            fontWeight = FontWeight.bold
-            fontFamily = "'Montserrat', sans-serif"
-            val currentShadows = BoxShadows()
-            currentShadows.plusAssign(BoxShadow(
-                inset = false,
-                offsetX = 0.px,
-                offsetY = 0.px,
-                color = Color("#888888"),
-                spreadRadius = 0.px,
-                blurRadius = 10.px
-            ))
-            boxShadow = currentShadows
-        }
-        ".fileActions" {
-            float = Float.right
-        }
-        "#content" {
-            minHeight = 100.px
-        }
-        "#loginWithDiscord" {
-            color = Color.initial
-            backgroundColor = Color("#7289DA")
-            borderRadius = 3.px
-            padding = "14px"
-            verticalAlign = VerticalAlign.middle
-            fontWeight = FontWeight.bold
-            val currentShadows = BoxShadows()
-            currentShadows.plusAssign(BoxShadow(
-                inset = false,
-                offsetX = 0.px,
-                offsetY = 0.px,
-                color = Color("#888888"),
-                spreadRadius = 0.px,
-                blurRadius = 10.px
-            ))
-            boxShadow = currentShadows
-        }
-        "#main" {
-            backgroundColor = Color.white
-            width = 400.px
-            padding = "20px"
-            borderRadius = 3.px
-            val currentShadows = BoxShadows()
-            currentShadows.plusAssign(BoxShadow(
-                inset = false,
-                offsetX = 0.px,
-                offsetY = 0.px,
-                color = Color("#888888"),
-                spreadRadius = 0.px,
-                blurRadius = 10.px
-            ))
-            boxShadow = currentShadows
-        }
-    }.toString()
-}
-class MainTemplate : Template<HTML> {
+class LoggedInBaseTemplate : Template<HTML> {
     val content = Placeholder<FlowContent>()
+    val base = BaseTemplate()
+    override fun HTML.apply() {
+        insert(base) {
+            footer {
+                loggedIn = true
+            }
+            mainContent {
+                insert(content)
+            }
+        }
+    }
+}
+
+class ErrorTemplate : Template<HTML> {
+    val content = Placeholder<FlowContent>()
+    val base = BaseTemplate()
+    override fun HTML.apply() {
+        insert(base) {
+            mainContent {
+                insert(content)
+            }
+        }
+    }
+}
+
+class BaseTemplate : Template<HTML> {
+    val mainContent = Placeholder<FlowContent>()
     val footer = TemplatePlaceholder<FooterTemplate>()
     override fun HTML.apply() {
         head {
             title {
                 +"Schemati"
             }
+            link(href = "https://openredstone.org/wp-content/uploads/2018/07/favicon.png", rel = "icon")
             link(href = "https://fonts.googleapis.com/css?family=Montserrat&display=swap", rel = "stylesheet")
             link(href = "https://use.fontawesome.com/releases/v5.1.1/css/all.css", rel = "stylesheet")
             style {
-                +getStyle()
+                unsafe {
+                    raw(getStyle())
+                }
+            }
+            script(type = "text/javascript") {
+                unsafe {
+                    raw(getScript())
+                }
             }
         }
         body {
@@ -142,7 +63,7 @@ class MainTemplate : Template<HTML> {
                 hr { }
                 div {
                     id = "content"
-                    insert(content)
+                    insert(mainContent)
                 }
                 hr {}
                 insert(FooterTemplate(), footer)
@@ -151,12 +72,109 @@ class MainTemplate : Template<HTML> {
     }
 }
 
-class ListingTemplate : Template<HTML> {
-    val main: MainTemplate = MainTemplate()
-    val username = Placeholder<FlowContent>()
-    val file = PlaceholderList<UL, FlowContent>()
+class LoggedInHomeTemplate(var username : String) : Template<HTML> {
+    val loggedInBaseTemplate : LoggedInBaseTemplate = LoggedInBaseTemplate()
     override fun HTML.apply() {
-        insert(main) {
+        insert(loggedInBaseTemplate) {
+            content {
+                p { +"Hello, $username" }
+                p { +"View your "
+                    a("/schems") {
+                        span {
+                            +"schematics"
+                        }
+                    }
+                    +"?"
+                }
+            }
+        }
+    }
+}
+
+class SchemsRenameTemplate(var filename : String) : Template<HTML> {
+    val loggedInBaseTemplate : LoggedInBaseTemplate = LoggedInBaseTemplate()
+    override fun HTML.apply() {
+        insert(loggedInBaseTemplate) {
+            content {
+                p {
+                    +"Rename "
+                    span {
+                        +filename
+                    }
+                    +"?"
+                }
+                form(action = "/schems/rename/") {
+                    input(type = InputType.text, name = "file") {
+                        hidden = true
+                        value = filename
+                    }
+                    input(type = InputType.text, name = "newname") {
+                        classes = setOf("textInput")
+                        style = "width:80%;margin-left:10%;margin-right:10%;"
+                        value = filename
+                        placeholder = "New Name"
+                    }
+                    div {
+                        style = "padding-top:20px;min-height:50px"
+                        input(type = InputType.submit) {
+                            classes = setOf("generalButton leftFloat")
+                            value = "Rename"
+                        }
+                        a(href = "/schems") {
+                            button {
+                                classes = setOf("generalButton rightFloat")
+                                +"Cancel"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+class SchemsDeleteTemplate(var filename : String) : Template<HTML> {
+    val loggedInBaseTemplate : LoggedInBaseTemplate = LoggedInBaseTemplate()
+    override fun HTML.apply() {
+        insert(loggedInBaseTemplate) {
+            content {
+                p {
+                    +"Delete "
+                    span {
+                        +filename
+                    }
+                    +"?"
+                }
+                form(action = "/schems/delete/") {
+                    classes = setOf("leftFloat")
+                    input(type = InputType.text, name = "file") {
+                        hidden = true
+                        value = filename
+                    }
+                    input(type = InputType.submit, name = "confirm") {
+                        style = "min-width:100px;"
+                        classes = setOf("generalButton")
+                        value = "Confirm"
+                    }
+                }
+                form(action = "/schems") {
+                    classes = setOf("rightFloat")
+                    input(type = InputType.submit) {
+                        style = "min-width:100px;"
+                        classes = setOf("generalButton")
+                        value = "Cancel"
+                    }
+                }
+            }
+        }
+    }
+}
+
+class SchemsListTemplate(var files : Set<File>) : Template<HTML> {
+    val loggedInBaseTemplate : LoggedInBaseTemplate = LoggedInBaseTemplate()
+    val username = Placeholder<FlowContent>()
+    override fun HTML.apply() {
+        insert(loggedInBaseTemplate) {
             content {
                 p {
                     span {
@@ -164,24 +182,86 @@ class ListingTemplate : Template<HTML> {
                     }
                     +"'s schematics:"
                 }
-                if (!file.isEmpty()) {
+                // I hate doing this instead of using the API, but its the only way to get it to work
+                if (files.isNotEmpty()) {
                     ul {
                         id = "fileListing"
-                        each(file) {
+                        var fileCount = 0
+                        files.forEach {
+                            fileCount++
                             li {
                                 classes = setOf("fileEntry")
-                                insert(it)
+                                div {
+                                    classes = setOf("fileEntryName")
+                                    id = "fileName${fileCount}"
+                                    +it.name
+                                }
+                                div {
+                                    classes = setOf("fileEntryActions")
+                                    id = "actionOptions${fileCount}"
+                                    style = "display:none;"
+                                    span {
+                                        style = "font-size:0.8em;"
+                                        a("/schems/rename/?file=${it.name}") {
+                                            style = "color:#444444;"
+                                            +"Rename "
+                                            i {
+                                                classes = setOf("fas fa-edit")
+                                            }
+                                        }
+                                    }
+                                    +"  |  "
+                                    span {
+                                        style = "font-size:0.8em;"
+                                        a("/schems/delete/?file=${it.name}") {
+                                            style = "color:#444444;"
+                                            +"Delete "
+                                            i {
+                                                classes = setOf("fas fa-trash")
+                                            }
+                                        }
+                                    }
+                                    +"  |  "
+                                    span {
+                                        style = "font-size:0.8em;"
+                                        a("/schems/download/?file=${it.name}") {
+                                            style = "color:#444444;"
+                                            +"Download "
+                                            i {
+                                                classes = setOf("fas fa-download")
+                                            }
+                                        }
+                                    }
+                                }
+                                div {
+                                    classes = setOf("actionMenu")
+                                    button {
+                                        classes = setOf("actionButton")
+                                        onClick = "swapDisplay(${fileCount})"
+                                        i {
+                                            id = "actionIcon${fileCount}"
+                                            classes = setOf("fas fa-caret-left")
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                 }
                 div {
-                    // TODO: Style this
                     form(action = "/schems/upload", method = FormMethod.post, encType = FormEncType.multipartFormData) {
+                        style = "padding-bottom:14px;padding-top:14px;"
                         input(type = InputType.file, name = "toUpload") {
+                            style = "display:none;"
+                            onChange = "this.form.submit()"
                             id = "fileUpload"
                         }
-                        input(type = InputType.submit) { }
+                        input(type = InputType.button) {
+                            classes = setOf("generalButton")
+                            style = "width:60%;margin-left:20%;margin-right:20%;"
+                            value = "Upload Schematic"
+                            onClick = "document.getElementById('fileUpload').click();"
+                        }
                     }
                 }
             }
@@ -190,10 +270,10 @@ class ListingTemplate : Template<HTML> {
 }
 
 class LandingTemplate : Template<HTML> {
-    val main: MainTemplate = MainTemplate()
+    val base : BaseTemplate = BaseTemplate()
     override fun HTML.apply() {
-        insert(main) {
-            content {
+        insert(base) {
+            mainContent {
                 p { +"Welcome : ) !" }
                 div {
                     classes = setOf("center")
@@ -201,7 +281,7 @@ class LandingTemplate : Template<HTML> {
                     a ("/login") {
                         id = "loginWithDiscord"
                         +"Login with "
-                        img(src = "https://discord.com/assets/34b52b6af57f96d86dd0b48c9e7841f7.png") {
+                        img(src = "https://discord.com/assets/f72fbed55baa5642d5a0348bab7d7226.png") {
                             id = "discordLoginIcon"
                         }
                     }
@@ -211,13 +291,19 @@ class LandingTemplate : Template<HTML> {
     }
 }
 
-
-
-class FooterTemplate : Template<FlowContent> {
-    // TODO: Style this
+class FooterTemplate(var loggedIn : Boolean = false) : Template<FlowContent> {
     override fun FlowContent.apply() {
         p {
-            a ("https://openredstone.org") { +"openredstone.org"}
+            style = "font-size:0.8em;"
+            if (loggedIn) {
+                a ("/logout") { +"logout"}
+                +" | "
+            }
+            a ("https://openredstone.org") { +"openredstone"}
+            +" | "
+            a ("https://forum.openredstone.org") { +"forum"}
+            +" | "
+            a ("https://openredstone.org/discord") { +"discord"}
         }
     }
 }
