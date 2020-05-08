@@ -1,6 +1,7 @@
 package schemati.web
 
 import io.ktor.application.Application
+import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.auth.Authentication
@@ -11,14 +12,16 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
 import io.ktor.features.DefaultHeaders
 import io.ktor.features.StatusPages
+import io.ktor.html.respondHtmlTemplate
 import io.ktor.http.HttpMethod
+import io.ktor.response.respondRedirect
 import io.ktor.routing.*
 import io.ktor.server.engine.ApplicationEngine
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-import io.ktor.sessions.SessionStorageMemory
-import io.ktor.sessions.Sessions
-import io.ktor.sessions.cookie
+import io.ktor.sessions.*
+import io.ktor.util.pipeline.PipelineContext
+import kotlinx.html.p
 import schemati.Schematics
 import schemati.connector.Database
 
@@ -40,7 +43,19 @@ fun makeSchemsApp(database: Database, authConfig: AuthConfig, schems: Schematics
         defaultScopes = authConfig.scopes
     )
 
-    install(StatusPages)
+    install(StatusPages) {
+        exception<RedirectException> { cause ->
+            call.respondRedirect(cause.destination, permanent = false)
+        }
+        exception<ErrorPageException> { cause ->
+            call.respondHtmlTemplate(ErrorTemplate()) {
+                content {
+                    p { +cause.content }
+                }
+            }
+        }
+    }
+
     install(DefaultHeaders)
 
     // Registers session management
@@ -69,19 +84,19 @@ fun makeSchemsApp(database: Database, authConfig: AuthConfig, schems: Schematics
         }
         route("/schems") {
             handle {
-                pageSchems(call, schems)
+                pageSchems(call, schems, user())
             }
             post("/upload") {
-                pageSchemsUpload(call, schems)
+                pageSchemsUpload(call, schems, user())
             }
             get("/download") {
-                pageSchemsDownload(call, schems)
+                pageSchemsDownload(call, schems, user())
             }
             get("/rename") {
-                pageSchemsRename(call, schems)
+                pageSchemsRename(call, schems, user())
             }
             get("/delete") {
-                pageSchemsDelete(call, schems)
+                pageSchemsDelete(call, schems, user())
             }
         }
         authenticate("discordOauth") {
@@ -98,3 +113,12 @@ fun makeSchemsApp(database: Database, authConfig: AuthConfig, schems: Schematics
         }
     }
 }
+
+private fun PipelineContext<Unit, ApplicationCall>.user() =
+    call.sessions.get<LoggedSession>() ?: redirectTo("/")
+
+class RedirectException(val destination: String) : Exception()
+class ErrorPageException(val content: String) : Exception()
+
+fun showErrorPage(message: String): Nothing = throw ErrorPageException(message)
+fun redirectTo(where: String): Nothing = throw RedirectException(where)

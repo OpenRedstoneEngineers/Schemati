@@ -15,9 +15,6 @@ import java.util.*
 
 data class LoggedSession(val userId: UUID, val userName: String)
 
-fun getSessionUser(session: CurrentSession): LoggedSession? =
-    session.get("sessionId") as? LoggedSession
-
 suspend fun fetchId(accessToken: String) : String? {
     val json = HttpClient(Apache).get<String>("${discordApiBase}users/@me") {
         header("Authorization", "Bearer $accessToken")

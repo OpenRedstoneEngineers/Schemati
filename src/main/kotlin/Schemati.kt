@@ -4,14 +4,14 @@ import co.aikar.commands.PaperCommandManager
 import com.sk89q.worldedit.bukkit.WorldEditPlugin
 import io.ktor.server.engine.ApplicationEngine
 import org.bukkit.plugin.java.JavaPlugin
-import schemati.connector.DatabaseImpl
+import schemati.connector.JDBCDatabase
 import schemati.web.AuthConfig
 import schemati.web.startWeb
 import java.io.File
 
 class Schemati : JavaPlugin() {
     private var web: ApplicationEngine? = null
-    private var database: DatabaseImpl? = null
+    private var database: JDBCDatabase? = null
 
     override fun onEnable() {
         loadConfig()
@@ -24,7 +24,7 @@ class Schemati : JavaPlugin() {
         }
 
         database = config.getConfigurationSection("database")!!.run {
-            DatabaseImpl(
+            JDBCDatabase(
                 database = getString("database")!!,
                 username = getString("username")!!,
                 password = getString("password")!!
@@ -53,7 +53,6 @@ class Schemati : JavaPlugin() {
             )
         }
     }
-
 
     override fun onDisable() {
         database?.unload()

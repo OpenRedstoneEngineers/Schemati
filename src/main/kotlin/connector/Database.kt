@@ -9,10 +9,10 @@ import java.util.*
 data class User(val mojangId: UUID, val discordId: String, val ign: String)
 
 interface Database {
-    fun getUuidFromDiscordId(discordId: String): User?
+    fun findUserByDiscordId(discordId: String): User?
 }
 
-class DatabaseImpl(port: Int = 3306, host: String = "localhost", database: String, username: String, password: String): Database {
+class JDBCDatabase(port: Int = 3306, host: String = "localhost", database: String, username: String, password: String): Database {
     private val toUser: (Row) -> User = { row ->
         User(
             UUID.fromString(row.string("m_uuid")),
@@ -23,7 +23,7 @@ class DatabaseImpl(port: Int = 3306, host: String = "localhost", database: Strin
 
     private val connection: Session = session("jdbc:mysql://${host}:${port}/${database}", username, password)
 
-    override fun getUuidFromDiscordId(discordId: String): User? {
+    override fun findUserByDiscordId(discordId: String): User? {
         val selectUserFromDiscordId = sqlQuery("SELECT * FROM nu_users WHERE discord_id LIKE ?", discordId)
         return connection.first(selectUserFromDiscordId, toUser)
     }
