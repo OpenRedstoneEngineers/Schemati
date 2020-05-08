@@ -4,14 +4,18 @@ import com.vladsch.kotlin.jdbc.Row
 import com.vladsch.kotlin.jdbc.Session
 import com.vladsch.kotlin.jdbc.session
 import com.vladsch.kotlin.jdbc.sqlQuery
+import java.util.*
 
-class Database(val port: Int = 3306, val host: String = "localhost", val database: String, val username: String, val password: String) {
+data class User(val mojangId: UUID, val discordId: String, val ign: String)
 
-    data class User(val mojangId: String, val discordId: String, val ign: String)
+interface Database {
+    fun getUuidFromDiscordId(discordId: String): User?
+}
 
+class DatabaseImpl(port: Int = 3306, host: String = "localhost", database: String, username: String, password: String): Database {
     private val toUser: (Row) -> User = { row ->
         User(
-            row.string("m_uuid"),
+            UUID.fromString(row.string("m_uuid")),
             row.string("discord_id"),
             row.string("ign")
         )
@@ -19,7 +23,7 @@ class Database(val port: Int = 3306, val host: String = "localhost", val databas
 
     private val connection: Session = session("jdbc:mysql://${host}:${port}/${database}", username, password)
 
-    fun getUuidFromDiscordId(discordId: String) : User? {
+    override fun getUuidFromDiscordId(discordId: String): User? {
         val selectUserFromDiscordId = sqlQuery("SELECT * FROM nu_users WHERE discord_id LIKE ?", discordId)
         return connection.first(selectUserFromDiscordId, toUser)
     }
@@ -27,5 +31,4 @@ class Database(val port: Int = 3306, val host: String = "localhost", val databas
     fun unload() {
         connection.close()
     }
-
 }

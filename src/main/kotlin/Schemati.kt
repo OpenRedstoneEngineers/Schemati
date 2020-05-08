@@ -1,35 +1,63 @@
 package schemati
 
-import io.ktor.application.Application
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
-import org.bukkit.configuration.file.FileConfiguration
+import co.aikar.commands.PaperCommandManager
+import com.sk89q.worldedit.bukkit.WorldEditPlugin
+import io.ktor.server.engine.ApplicationEngine
 import org.bukkit.plugin.java.JavaPlugin
-import schemati.connector.Database
-import schemati.web.main
+import schemati.connector.DatabaseImpl
+import schemati.web.AuthConfig
+import schemati.web.startWeb
 import java.io.File
 
 class Schemati : JavaPlugin() {
+    private var web: ApplicationEngine? = null
+    private var database: DatabaseImpl? = null
 
     override fun onEnable() {
         loadConfig()
-        schematiConfig = config
 
-        val databaseSection = config.getConfigurationSection("database")!!
-        databaseManager = Database(
-            database = databaseSection.getString("database")!!,
-            username = databaseSection.getString("username")!!,
-            password = databaseSection.getString("password")!!
-        )
-
-        if (config.contains("web.port")) {
-            startWeb(config.getConfigurationSection("web")!!.getInt("port"))
+        val wePlugin = server.pluginManager.getPlugin("WorldEdit") as? WorldEditPlugin ?: throw Exception("no u")
+        val schems = Schematics(File(config.getString("schematicsDirectory")!!))
+        PaperCommandManager(this).apply {
+            registerCommand(Commands(wePlugin.worldEdit, schems))
+            commandCompletions.registerCompletion("schematics", SchematicCompletionHandler(schems))
         }
 
+        database = config.getConfigurationSection("database")!!.run {
+            DatabaseImpl(
+                database = getString("database")!!,
+                username = getString("username")!!,
+                password = getString("password")!!
+            )
+        }
+
+        val oauthSection = config
+            .getConfigurationSection("web")!!
+            .getConfigurationSection("oauth")!!
+
+        val authConfig = oauthSection.run {
+            AuthConfig(
+                clientId = getString("clientId")!!,
+                clientSecret = getString("clientSecret")!!,
+                scopes = getStringList("scopes")
+            )
+        }
+
+
+        if (config.contains("web.port")) {
+            web = startWeb(
+                config.getConfigurationSection("web")!!.getInt("port"),
+                database!!,
+                authConfig,
+                schems
+            )
+        }
     }
 
+
     override fun onDisable() {
-        databaseManager?.unload()
+        database?.unload()
+        web?.stop(1000, 1000)
     }
 
     private fun loadConfig() {
@@ -45,14 +73,5 @@ class Schemati : JavaPlugin() {
 
         config.options().copyDefaults(true)
         saveConfig()
-    }
-
-    private fun startWeb(port: Int) {
-        embeddedServer(Netty, port = port, module = Application::main).start()
-    }
-
-    companion object Configuration {
-        var schematiConfig: FileConfiguration? = null
-        var databaseManager: Database? = null
     }
 }

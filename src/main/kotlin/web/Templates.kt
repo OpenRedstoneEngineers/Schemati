@@ -170,7 +170,7 @@ class SchemsDeleteTemplate(var filename : String) : Template<HTML> {
     }
 }
 
-class SchemsListTemplate(var files : Set<File>) : Template<HTML> {
+class SchemsListTemplate(val files : List<String>) : Template<HTML> {
     val loggedInBaseTemplate : LoggedInBaseTemplate = LoggedInBaseTemplate()
     val username = Placeholder<FlowContent>()
     override fun HTML.apply() {
@@ -183,65 +183,61 @@ class SchemsListTemplate(var files : Set<File>) : Template<HTML> {
                     +"'s schematics:"
                 }
                 // I hate doing this instead of using the API, but its the only way to get it to work
-                if (files.isNotEmpty()) {
-                    ul {
-                        id = "fileListing"
-                        var fileCount = 0
-                        files.forEach {
-                            fileCount++
-                            li {
-                                classes = setOf("fileEntry")
-                                div {
-                                    classes = setOf("fileEntryName")
-                                    id = "fileName${fileCount}"
-                                    +it.name
-                                }
-                                div {
-                                    classes = setOf("fileEntryActions")
-                                    id = "actionOptions${fileCount}"
-                                    style = "display:none;"
-                                    span {
-                                        style = "font-size:0.8em;"
-                                        a("/schems/rename/?file=${it.name}") {
-                                            style = "color:#444444;"
-                                            +"Rename "
-                                            i {
-                                                classes = setOf("fas fa-edit")
-                                            }
-                                        }
-                                    }
-                                    +"  |  "
-                                    span {
-                                        style = "font-size:0.8em;"
-                                        a("/schems/delete/?file=${it.name}") {
-                                            style = "color:#444444;"
-                                            +"Delete "
-                                            i {
-                                                classes = setOf("fas fa-trash")
-                                            }
-                                        }
-                                    }
-                                    +"  |  "
-                                    span {
-                                        style = "font-size:0.8em;"
-                                        a("/schems/download/?file=${it.name}") {
-                                            style = "color:#444444;"
-                                            +"Download "
-                                            i {
-                                                classes = setOf("fas fa-download")
-                                            }
-                                        }
-                                    }
-                                }
-                                div {
-                                    classes = setOf("actionMenu")
-                                    button {
-                                        classes = setOf("actionButton")
-                                        onClick = "swapDisplay(${fileCount})"
+                ul {
+                    id = "fileListing"
+                    files.forEachIndexed { index, name ->
+                        li {
+                            classes = setOf("fileEntry")
+                            div {
+                                classes = setOf("fileEntryName")
+                                id = "fileName$index"
+                                +name
+                            }
+                            div {
+                                classes = setOf("fileEntryActions")
+                                id = "actionOptions$index"
+                                style = "display:none;"
+                                span {
+                                    style = "font-size:0.8em;"
+                                    a("/schems/rename/?file=$name") {
+                                        style = "color:#444444;"
+                                        +"Rename "
                                         i {
-                                            id = "actionIcon${fileCount}"
-                                            classes = setOf("fas fa-caret-left")
+                                            classes = setOf("fas fa-edit")
                                         }
+                                    }
+                                }
+                                +"  |  "
+                                span {
+                                    style = "font-size:0.8em;"
+                                    a("/schems/delete/?file=$name") {
+                                        style = "color:#444444;"
+                                        +"Delete "
+                                        i {
+                                            classes = setOf("fas fa-trash")
+                                        }
+                                    }
+                                }
+                                +"  |  "
+                                span {
+                                    style = "font-size:0.8em;"
+                                    a("/schems/download/?file=$name") {
+                                        style = "color:#444444;"
+                                        +"Download "
+                                        i {
+                                            classes = setOf("fas fa-download")
+                                        }
+                                    }
+                                }
+                            }
+                            div {
+                                classes = setOf("actionMenu")
+                                button {
+                                    classes = setOf("actionButton")
+                                    onClick = "swapDisplay($index)"
+                                    i {
+                                        id = "actionIcon$index"
+                                        classes = setOf("fas fa-caret-left")
                                     }
                                 }
                             }

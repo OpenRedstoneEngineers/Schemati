@@ -1,32 +1,44 @@
 package schemati.web
 
-import io.ktor.application.*
-import io.ktor.auth.*
-import io.ktor.client.*
+import io.ktor.application.Application
+import io.ktor.application.call
+import io.ktor.application.install
+import io.ktor.auth.Authentication
+import io.ktor.auth.OAuthServerSettings
+import io.ktor.auth.authenticate
+import io.ktor.auth.oauth
+import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
-import io.ktor.features.*
+import io.ktor.features.DefaultHeaders
+import io.ktor.features.StatusPages
 import io.ktor.http.HttpMethod
 import io.ktor.routing.*
-import io.ktor.sessions.*
-import schemati.Schemati
+import io.ktor.server.engine.ApplicationEngine
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
+import io.ktor.sessions.SessionStorageMemory
+import io.ktor.sessions.Sessions
+import io.ktor.sessions.cookie
+import schemati.Schematics
+import schemati.connector.Database
 
-var discordApiBase = "https://discordapp.com/api/"
+const val discordApiBase = "https://discordapp.com/api/"
 
-val oauthSection = Schemati.schematiConfig!!
-    .getConfigurationSection("web")!!
-    .getConfigurationSection("oauth")
+fun startWeb(port: Int, database: Database, authConfig: AuthConfig, schems: Schematics): ApplicationEngine =
+    embeddedServer(Netty, port = port, module = makeSchemsApp(database, authConfig, schems)).start()
 
-var loginProvider = OAuthServerSettings.OAuth2ServerSettings(
-    name = "Discord",
-    authorizeUrl = "${discordApiBase}oauth2/authorize",
-    accessTokenUrl = "${discordApiBase}oauth2/token",
-    requestMethod = HttpMethod.Post,
-    clientId = oauthSection!!.getString("clientId")!!,
-    clientSecret = oauthSection.getString("clientSecret")!!,
-    defaultScopes = oauthSection.getStringList("scopes")
-)
+data class AuthConfig(val clientId: String, val clientSecret: String, val scopes: List<String>)
 
-fun Application.main() {
+fun makeSchemsApp(database: Database, authConfig: AuthConfig, schems: Schematics): Application.() -> Unit = {
+    val loginProvider = OAuthServerSettings.OAuth2ServerSettings(
+        name = "Discord",
+        authorizeUrl = "${discordApiBase}oauth2/authorize",
+        accessTokenUrl = "${discordApiBase}oauth2/token",
+        requestMethod = HttpMethod.Post,
+        clientId = authConfig.clientId,
+        clientSecret = authConfig.clientSecret,
+        defaultScopes = authConfig.scopes
+    )
 
     install(StatusPages)
     install(DefaultHeaders)
@@ -57,19 +69,19 @@ fun Application.main() {
         }
         route("/schems") {
             handle {
-                pageSchems(call)
+                pageSchems(call, schems)
             }
             post("/upload") {
-                pageSchemsUpload(call)
+                pageSchemsUpload(call, schems)
             }
             get("/download") {
-                pageSchemsDownload(call)
+                pageSchemsDownload(call, schems)
             }
             get("/rename") {
-                pageSchemsRename(call)
+                pageSchemsRename(call, schems)
             }
             get("/delete") {
-                pageSchemsDelete(call)
+                pageSchemsDelete(call, schems)
             }
         }
         authenticate("discordOauth") {
@@ -80,7 +92,7 @@ fun Application.main() {
                     }
                 }
                 handle {
-                    pageLogin(call)
+                    pageLogin(call, database)
                 }
             }
         }

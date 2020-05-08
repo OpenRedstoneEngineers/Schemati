@@ -11,36 +11,19 @@ import io.ktor.request.host
 import io.ktor.request.port
 import io.ktor.sessions.CurrentSession
 import schemati.Schemati
+import java.util.*
 
-data class LoggedSession(val userId: String, val userName: String)
+data class LoggedSession(val userId: UUID, val userName: String)
 
-fun getSessionUser(session: CurrentSession): LoggedSession? {
-    val sessionId = session.get("sessionId")
-    if (sessionId != null && sessionId is LoggedSession) {
-        return sessionId
-    }
-    return null
-}
-
-fun getFolderPath(session: CurrentSession): String? {
-    val sessionId = session.get("sessionId")
-    if (sessionId != null && sessionId is LoggedSession) {
-        return Schemati.schematiConfig?.getString("schematicsDirectory") + sessionId.userId + "/"
-    }
-    return null
-}
-
-fun isValidSession(session: CurrentSession): Boolean {
-    val sessionId = session.get("sessionId")
-    return sessionId != null && sessionId is LoggedSession
-}
+fun getSessionUser(session: CurrentSession): LoggedSession? =
+    session.get("sessionId") as? LoggedSession
 
 suspend fun fetchId(accessToken: String) : String? {
     val json = HttpClient(Apache).get<String>("${discordApiBase}users/@me") {
         header("Authorization", "Bearer $accessToken")
     }
     val data = ObjectMapper().readValue(json, Map::class.java)
-    return data["id"] as String?
+    return data["id"] as? String
 }
 
 fun ApplicationCall.redirectUrl(path: String): String {

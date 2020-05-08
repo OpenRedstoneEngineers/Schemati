@@ -11,19 +11,17 @@ import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.http.content.streamProvider
 import io.ktor.request.receiveMultipart
-import io.ktor.response.header
-import io.ktor.response.respondFile
-import io.ktor.response.respondRedirect
-import io.ktor.response.respondText
+import io.ktor.response.*
 import io.ktor.sessions.sessions
 import kotlinx.html.*
-import schemati.Schemati
+import schemati.Schematics
+import schemati.connector.Database
 import java.io.File
 
 suspend fun pageLanding(call: ApplicationCall) {
     val session = call.sessions.get("sessionId")
-    if (isValidSession(call.sessions)) {
-        call.respondHtmlTemplate(LoggedInHomeTemplate(username = (session as LoggedSession).userName)) { }
+    if (session is LoggedSession) {
+        call.respondHtmlTemplate(LoggedInHomeTemplate(username = session.userName)) { }
     } else {
         call.respondHtmlTemplate(LandingTemplate()) { }
     }
@@ -45,16 +43,17 @@ suspend fun pageLogout(call: ApplicationCall) {
     call.respondRedirect("/")
 }
 
-suspend fun pageLogin(call: ApplicationCall) {
+suspend fun pageLogin(call: ApplicationCall, database: Database) {
     val principal = call.authentication.principal<OAuthAccessTokenResponse.OAuth2>()
 
     if (principal == null) {
         call.respondHtmlTemplate(LandingTemplate()) { }
         call.respondRedirect("/")
         call.respondHtml {  }
+        return
     }
 
-    val id = fetchId(principal!!.accessToken)
+    val id = fetchId(principal.accessToken)
 
     if (id == null) {
         call.respondHtmlTemplate(ErrorTemplate()) {
@@ -62,9 +61,10 @@ suspend fun pageLogin(call: ApplicationCall) {
                 p { +"Login error: Invalid principal!" }
             }
         }
+        return
     }
 
-    val user = Schemati.databaseManager?.getUuidFromDiscordId(id!!)
+    val user = database.getUuidFromDiscordId(id)
 
     if (user == null) {
         call.respondHtmlTemplate(ErrorTemplate()) {
@@ -72,71 +72,116 @@ suspend fun pageLogin(call: ApplicationCall) {
                 p { +"Login error: User is not linked!" }
             }
         }
+        return
     }
 
-    call.sessions.set("sessionId", LoggedSession(user!!.mojangId, user.ign))
+    call.sessions.set("sessionId", LoggedSession(user.mojangId, user.ign))
     call.respondRedirect("/schems")
 }
 
-suspend fun pageSchems(call: ApplicationCall) {
-    // TODO: resolve multiple response errors
-    val folderPath = getFolderPath(call.sessions) ?: call.respondText("riop")
-    val user = getSessionUser(call.sessions) ?: call.respondText("riop")
-    call.respondHtmlTemplate(SchemsListTemplate(files = File(folderPath.toString()).listFiles().toSet())) {
+// Common functionality with ingame commands
+
+suspend fun pageSchems(call: ApplicationCall, schems: Schematics) {
+    val user = getSessionUser(call.sessions) ?: run {
+        call.respondText("riop")
+        return
+    }
+    val files = schems.list(user.userId)
+    call.respondHtmlTemplate(SchemsListTemplate(files)) {
         username {
-            +(user as LoggedSession).userName
+            +user.userName
         }
     }
 }
 
-suspend fun pageSchemsUpload(call: ApplicationCall) {
-    // TODO: Implement path+file validation
-    val folderPath = getFolderPath(call.sessions) ?: call.respondText("riop")
-    val multipart = call.receiveMultipart()
-    multipart.forEachPart { part ->
-        if (part is PartData.FileItem) {
-            val name = part.originalFileName!!
-            val file = File("${folderPath}${name}")
-            part.streamProvider().use {inputStream ->
-                file.outputStream().buffered().use {
-                    inputStream.copyTo(it)
+suspend fun pageSchemsRename(call: ApplicationCall, schems: Schematics) {
+    val user = getSessionUser(call.sessions) ?: run {
+        call.respondText("riop")
+        return
+    }
+    val filename = call.parameters["file"] ?: run {
+        call.respondText("riop")
+        return
+    }
+    val newName = call.parameters["newname"]
+    if (newName != null) {
+        when (schems.rename(user.userId, filename, newName)) {
+            true -> call.respondRedirect("/schems")
+            false -> call.respondText("riop")
+        }
+    } else {
+        call.respondHtmlTemplate(SchemsRenameTemplate(filename = filename)) { }
+    }
+}
+
+suspend fun pageSchemsDelete(call: ApplicationCall, schems: Schematics) {
+    val user = getSessionUser(call.sessions) ?: run {
+        call.respondText("riop")
+        return
+    }
+    val filename = call.parameters["file"] ?: run {
+        call.respondText("riop")
+        return
+    }
+    if ("confirm" in call.parameters) {
+        when (schems.delete(user.userId, filename)) {
+            true -> call.respondRedirect("/schems")
+            false -> call.respondText("riop")
+        }
+    } else {
+        call.respondHtmlTemplate(SchemsDeleteTemplate(filename = filename)) { }
+    }
+}
+
+// Web specific functionality
+
+suspend fun pageSchemsUpload(call: ApplicationCall, schems: Schematics) {
+    val user = getSessionUser(call.sessions) ?: run {
+        call.respondText("riop")
+        return
+    }
+    // TODO: do something
+    try {
+        call.receiveMultipart().forEachPart { part ->
+            if (part is PartData.FileItem) {
+                val name = part.originalFileName!!
+                val file = schems.playerFile(user.userId, name) ?: run {
+                    call.respondText("riop")
+                    // TODO: get outta here
+                    throw Exception("riop")
+                }
+                part.streamProvider().use { inputStream ->
+                    file.outputStream().buffered().use {
+                        inputStream.copyTo(it)
+                    }
                 }
             }
         }
+    } catch (e: Exception) {
+        if (e.message == "riop") {
+            return
+        }
+        throw e
     }
     call.respondRedirect("/schems")
 }
 
-suspend fun pageSchemsDownload(call: ApplicationCall) {
-    val folderPath = getFolderPath(call.sessions) ?: call.respondText("riop")
-    val filename = call.parameters["file"]
+suspend fun pageSchemsDownload(call: ApplicationCall, schems: Schematics) {
+    val filename = call.parameters["file"] ?: run {
+        call.respondText("riop")
+        return
+    }
+    val user = getSessionUser(call.sessions) ?: run {
+        call.respondText("riop")
+        return
+    }
     call.response.header(
-        HttpHeaders.ContentDisposition, ContentDisposition.Attachment.withParameter(
-            ContentDisposition.Parameters.FileName, filename!!).toString())
-    call.respondFile(File("${folderPath}${filename}"))
-}
-
-suspend fun pageSchemsRename(call: ApplicationCall) {
-    val folderPath = getFolderPath(call.sessions) ?: call.respondText("riop")
-    val filename = call.parameters["file"]
-    if (call.parameters.contains("newname")) {
-        val newname = call.parameters["newname"]
-        // TODO: Implement path+file validation
-        File("${folderPath}${filename}").renameTo(File("${folderPath}${newname}"))
-        call.respondRedirect("/schems")
-    } else {
-        call.respondHtmlTemplate(SchemsRenameTemplate(filename = filename!!)) { }
+        HttpHeaders.ContentDisposition,
+        ContentDisposition.Attachment.withParameter(ContentDisposition.Parameters.FileName, filename).toString()
+    )
+    val file = schems.playerFile(user.userId, filename) ?: run {
+        call.respondText("riop")
+        return
     }
-}
-
-suspend fun pageSchemsDelete(call: ApplicationCall) {
-    val folderPath = getFolderPath(call.sessions) ?: call.respondText("riop")
-    val filename = call.parameters["file"]
-    if (call.parameters.contains("confirm")) {
-        // TODO: Implement path+file validation
-        File("${folderPath}${filename}").delete()
-        call.respondRedirect("/schems")
-    } else {
-        call.respondHtmlTemplate(SchemsDeleteTemplate(filename = filename!!)) { }
-    }
+    call.respondFile(file)
 }
