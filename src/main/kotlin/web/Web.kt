@@ -22,6 +22,7 @@ import io.ktor.server.netty.Netty
 import io.ktor.sessions.*
 import io.ktor.util.pipeline.PipelineContext
 import kotlinx.html.p
+import schemati.PlayerSchematics
 import schemati.Schematics
 import schemati.connector.Database
 
@@ -84,19 +85,19 @@ fun makeSchemsApp(database: Database, authConfig: AuthConfig, schems: Schematics
         }
         route("/schems") {
             handle {
-                pageSchems(call, schems, user())
+                pageSchems(call, schems.forPlayer(user().userId), user())
             }
             post("/upload") {
-                pageSchemsUpload(call, schems, user())
+                pageSchemsUpload(call, schems.forPlayer(user().userId))
             }
             get("/download") {
-                pageSchemsDownload(call, schems, user())
+                pageSchemsDownload(call, schems.forPlayer(user().userId))
             }
             get("/rename") {
-                pageSchemsRename(call, schems, user())
+                pageSchemsRename(call, schems.forPlayer(user().userId))
             }
             get("/delete") {
-                pageSchemsDelete(call, schems, user())
+                pageSchemsDelete(call, schems.forPlayer(user().userId))
             }
         }
         authenticate("discordOauth") {

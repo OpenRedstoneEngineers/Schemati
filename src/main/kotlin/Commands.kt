@@ -19,14 +19,14 @@ import java.io.IOException
 @CommandAlias("/schematics")
 @Description("Manage your schematics")
 @CommandPermission("schemati.schematics")
-class Commands(private val worldEdit: WorldEdit, private val schems: Schematics) : BaseCommand() {
+class Commands(private val worldEdit: WorldEdit) : BaseCommand() {
     private val ioErrorMessage =
         "An unexpected error happened against our expectations. Please consult your dictionary."
 
     @Default
     @Subcommand("list")
-    fun list(player: Player) {
-        val files = schems.list(player.uniqueId)
+    fun list(player: Player, schems: PlayerSchematics) {
+        val files = schems.list()
         player.sendMessage("Your schematics:")
         player.sendMessage(files.toTypedArray())
     }
@@ -34,8 +34,8 @@ class Commands(private val worldEdit: WorldEdit, private val schems: Schematics)
     @Subcommand("rename")
     @CommandAlias("/rename")
     @CommandCompletion("@schematics")
-    fun rename(player: Player, filename: String, newName: String) {
-        val response = when (schems.rename(player.uniqueId, filename, newName)) {
+    fun rename(player: Player, schems: PlayerSchematics, filename: String, newName: String) {
+        val response = when (schems.rename(filename, newName)) {
             true -> "Renamed schematic $filename to $newName."
             false -> "Something went wrong!"
         }
@@ -45,8 +45,8 @@ class Commands(private val worldEdit: WorldEdit, private val schems: Schematics)
     @Subcommand("delete")
     @CommandAlias("/delete")
     @CommandCompletion("@schematics")
-    fun delete(player: Player, filename: String) {
-        val response = when (schems.delete(player.uniqueId, filename)) {
+    fun delete(player: Player, schems: PlayerSchematics, filename: String) {
+        val response = when (schems.delete(filename)) {
             true -> "Deleted schematic $filename."
             false -> "Something went wrong!"
         }
@@ -56,8 +56,8 @@ class Commands(private val worldEdit: WorldEdit, private val schems: Schematics)
     @Subcommand("save")
     @CommandAlias("/save")
     @CommandCompletion("@schematics")
-    fun save(player: Player, filename: String) {
-        val file = schems.playerFile(player.uniqueId, filename) ?: run {
+    fun save(player: Player, schems: PlayerSchematics, filename: String) {
+        val file = schems.file(filename) ?: run {
             player.sendMessage("Invalid file!")
             return
         }
@@ -80,8 +80,8 @@ class Commands(private val worldEdit: WorldEdit, private val schems: Schematics)
     @Subcommand("load")
     @CommandAlias("/load")
     @CommandCompletion("@schematics")
-    fun load(player: Player, filename: String) {
-        val file = schems.playerFile(player.uniqueId, filename) ?: run {
+    fun load(player: Player, schems: PlayerSchematics, filename: String) {
+        val file = schems.file(filename) ?: run {
             player.sendMessage("Invalid filename.")
             return
         }
@@ -111,6 +111,6 @@ class SchematicCompletionHandler(private val schems: Schematics) :
     CommandCompletions.CommandCompletionHandler<BukkitCommandCompletionContext>
 {
     override fun getCompletions(context: BukkitCommandCompletionContext): MutableCollection<String> =
-        schems.list(context.player.uniqueId).toMutableList()
+        schems.forPlayer(context.player.uniqueId).list().toMutableList()
 }
 

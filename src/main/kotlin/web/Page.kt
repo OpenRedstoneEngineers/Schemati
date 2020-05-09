@@ -16,7 +16,7 @@ import io.ktor.sessions.get
 import io.ktor.sessions.sessions
 import io.ktor.sessions.set
 import kotlinx.html.*
-import schemati.Schematics
+import schemati.PlayerSchematics
 import schemati.connector.Database
 
 suspend fun pageLanding(call: ApplicationCall) {
@@ -57,8 +57,8 @@ suspend fun pageLogin(call: ApplicationCall, database: Database) {
 
 // Common functionality with ingame commands
 
-suspend fun pageSchems(call: ApplicationCall, schems: Schematics, user: LoggedSession) {
-    val files = schems.list(user.userId)
+suspend fun pageSchems(call: ApplicationCall, schems: PlayerSchematics, user: LoggedSession) {
+    val files = schems.list()
     call.respondHtmlTemplate(SchemsListTemplate(files)) {
         username {
             +user.userName
@@ -66,26 +66,26 @@ suspend fun pageSchems(call: ApplicationCall, schems: Schematics, user: LoggedSe
     }
 }
 
-suspend fun pageSchemsRename(call: ApplicationCall, schems: Schematics, user: LoggedSession) {
+suspend fun pageSchemsRename(call: ApplicationCall, schems: PlayerSchematics) {
     val filename = call.parameters["file"] ?: showErrorPage("Did not receive parameter file")
     val newName = call.parameters["newname"]
     if (newName == null) {
         call.respondHtmlTemplate(SchemsRenameTemplate(filename = filename)) { }
         return
     }
-    when (schems.rename(user.userId, filename, newName)) {
+    when (schems.rename(filename, newName)) {
         true -> call.respondRedirect("/schems")
         false -> showErrorPage("Rename failed")
     }
 }
 
-suspend fun pageSchemsDelete(call: ApplicationCall, schems: Schematics, user: LoggedSession) {
+suspend fun pageSchemsDelete(call: ApplicationCall, schems: PlayerSchematics) {
     val filename = call.parameters["file"] ?: showErrorPage("Did not receive parameter file")
     if ("confirm" !in call.parameters) {
         call.respondHtmlTemplate(SchemsDeleteTemplate(filename = filename)) { }
         return
     }
-    when (schems.delete(user.userId, filename)) {
+    when (schems.delete(filename)) {
         true -> call.respondRedirect("/schems")
         false -> showErrorPage("Delete failed")
     }
@@ -93,14 +93,14 @@ suspend fun pageSchemsDelete(call: ApplicationCall, schems: Schematics, user: Lo
 
 // Web specific functionality
 
-suspend fun pageSchemsUpload(call: ApplicationCall, schems: Schematics, user: LoggedSession) {
+suspend fun pageSchemsUpload(call: ApplicationCall, schems: PlayerSchematics) {
     val parts = call
         .receiveMultipart()
         .readAllParts()
         .filterIsInstance<PartData.FileItem>()
     if (parts.isEmpty()) showErrorPage("Did not receive file")
     val filename = parts.first().originalFileName ?: showErrorPage("File does not have a name")
-    val file = schems.playerFile(user.userId, filename) ?: showErrorPage("Filename is invalid")
+    val file = schems.file(filename) ?: showErrorPage("Filename is invalid")
     file.outputStream().buffered().use { destination ->
         parts.forEach { part ->
             part.streamProvider().use { it.copyTo(destination) }
@@ -109,12 +109,12 @@ suspend fun pageSchemsUpload(call: ApplicationCall, schems: Schematics, user: Lo
     call.respondRedirect("/schems")
 }
 
-suspend fun pageSchemsDownload(call: ApplicationCall, schems: Schematics, user: LoggedSession) {
+suspend fun pageSchemsDownload(call: ApplicationCall, schems: PlayerSchematics) {
     val filename = call.parameters["file"] ?: showErrorPage("Did not receive parameter file")
     call.response.header(
         HttpHeaders.ContentDisposition,
         ContentDisposition.Attachment.withParameter(ContentDisposition.Parameters.FileName, filename).toString()
     )
-    val file = schems.playerFile(user.userId, filename) ?: showErrorPage("Filename is invalid")
+    val file = schems.file(filename) ?: showErrorPage("Filename is invalid")
     call.respondFile(file)
 }

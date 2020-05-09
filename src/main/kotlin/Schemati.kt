@@ -6,7 +6,6 @@ import io.ktor.server.engine.ApplicationEngine
 import org.bukkit.plugin.java.JavaPlugin
 import schemati.connector.JDBCDatabase
 import schemati.web.AuthConfig
-import schemati.web.startWeb
 import java.io.File
 
 class Schemati : JavaPlugin() {
@@ -19,8 +18,11 @@ class Schemati : JavaPlugin() {
         val wePlugin = server.pluginManager.getPlugin("WorldEdit") as? WorldEditPlugin ?: throw Exception("no u")
         val schems = Schematics(File(config.getString("schematicsDirectory")!!))
         PaperCommandManager(this).apply {
-            registerCommand(Commands(wePlugin.worldEdit, schems))
+            commandContexts.registerIssuerOnlyContext(PlayerSchematics::class.java) { context ->
+                schems.forPlayer(context.player.uniqueId)
+            }
             commandCompletions.registerCompletion("schematics", SchematicCompletionHandler(schems))
+            registerCommand(Commands(wePlugin.worldEdit))
         }
 
         database = config.getConfigurationSection("database")!!.run {

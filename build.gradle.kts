@@ -66,6 +66,7 @@ tasks.shadowJar {
 
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.javaParameters = true
 }
 
 tasks.build {
