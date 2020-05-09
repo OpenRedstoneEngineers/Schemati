@@ -31,7 +31,7 @@ suspend fun pageLanding(call: ApplicationCall) {
 suspend fun pageError(call: ApplicationCall) {
     call.respondHtmlTemplate(ErrorTemplate()) {
         content {
-            p { +"The following error(s) occured:" }
+            p { +"The following error(s) occurred:" }
             for (e in call.parameters.getAll("error").orEmpty()) {
                 p { +e }
             }
