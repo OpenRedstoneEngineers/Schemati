@@ -38,6 +38,9 @@ fun getStyle(): String {
             margin = "auto"
             width = LinearDimension.fitContent
         }
+        ".middleAlign" {
+            verticalAlign = VerticalAlign.middle
+        }
         "#loginWithDiscord" {
             color = Color.white
             backgroundColor = Color("#7289DA")
@@ -117,7 +120,6 @@ fun getStyle(): String {
             float = Float.right
         }
         ".actionButton" {
-            float = Float.right
             position = Position.relative
             display = Display.inlineBlock
             backgroundColor = Color.inherit

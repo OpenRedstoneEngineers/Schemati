@@ -203,12 +203,12 @@ class SchemsListTemplate(val files : List<String>) : Template<HTML> {
                         li {
                             classes = setOf("fileEntry")
                             div {
-                                classes = setOf("fileEntryName")
+                                classes = setOf("fileEntryName middleAlign")
                                 id = "fileName$index"
                                 +name
                             }
                             div {
-                                classes = setOf("fileEntryActions")
+                                classes = setOf("fileEntryActions middleAlign")
                                 id = "actionOptions$index"
                                 style = "display:none;"
                                 span {
