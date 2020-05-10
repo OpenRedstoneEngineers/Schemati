@@ -75,6 +75,7 @@ fun getStyle(): String {
             border = "none"
             borderRadius = 3.px
             padding = "10px"
+            minWidth = 100.px
             verticalAlign = VerticalAlign.middle
             fontWeight = FontWeight.bold
             fontFamily = "'Montserrat', sans-serif"
@@ -109,6 +110,8 @@ fun getStyle(): String {
         ".fileEntryName" {
             display = Display.inlineBlock
             width = 300.px
+            textOverflow = TextOverflow.ellipsis
+            overflow = Overflow.hidden
         }
         ".fileActions" {
             float = Float.right

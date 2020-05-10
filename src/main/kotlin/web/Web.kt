@@ -22,7 +22,6 @@ import io.ktor.server.netty.Netty
 import io.ktor.sessions.*
 import io.ktor.util.pipeline.PipelineContext
 import kotlinx.html.p
-import schemati.PlayerSchematics
 import schemati.Schematics
 import schemati.connector.Database
 

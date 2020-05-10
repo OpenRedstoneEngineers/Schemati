@@ -110,6 +110,7 @@ class SchemsRenameTemplate(var filename : String) : Template<HTML> {
                 p {
                     +"Rename "
                     span {
+                        style = "word-break:break-all;"
                         +filename
                     }
                     +"?"
@@ -133,6 +134,7 @@ class SchemsRenameTemplate(var filename : String) : Template<HTML> {
                         }
                         a(href = "/schems") {
                             button {
+                                type = ButtonType.button
                                 classes = setOf("generalButton rightFloat")
                                 +"Cancel"
                             }
@@ -152,28 +154,29 @@ class SchemsDeleteTemplate(var filename : String) : Template<HTML> {
                 p {
                     +"Delete "
                     span {
+                        style = "word-break:break-all;"
                         +filename
                     }
                     +"?"
                 }
                 form(action = "/schems/delete/") {
-                    classes = setOf("leftFloat")
                     input(type = InputType.text, name = "file") {
                         hidden = true
                         value = filename
                     }
-                    input(type = InputType.submit, name = "confirm") {
-                        style = "min-width:100px;"
-                        classes = setOf("generalButton")
-                        value = "Confirm"
-                    }
-                }
-                form(action = "/schems") {
-                    classes = setOf("rightFloat")
-                    input(type = InputType.submit) {
-                        style = "min-width:100px;"
-                        classes = setOf("generalButton")
-                        value = "Cancel"
+                    div {
+                        style = "padding-top:20px;min-height:50px"
+                        input(type = InputType.submit, name = "confirm") {
+                            classes = setOf("generalButton leftFloat")
+                            value = "Confirm"
+                        }
+                        a(href = "/schems") {
+                            button {
+                                type = ButtonType.button
+                                classes = setOf("generalButton rightFloat")
+                                +"Cancel"
+                            }
+                        }
                     }
                 }
             }
