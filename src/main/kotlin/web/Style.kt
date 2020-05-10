@@ -175,16 +175,16 @@ fun getScript(): String {
         function resetActions() {
             let actions = document.getElementsByClassName('fileEntryActions');
             let names = document.getElementsByClassName('fileEntryName');
-            for(var i = 0; i < actions.length; i++){
+            for(let i = 0; i < actions.length; i++){
                 actions[i].style.display = 'none';
                 names[i].style.display = 'inline-block';
             }
             let entries = document.getElementsByClassName('actionMenuOpen');
-            for(var i = 0; i < entries.length; i++){
+            for(let i = 0; i < entries.length; i++){
                 entries[i].classList.remove('actionMenuOpen')
             }
             let buttons = document.getElementsByClassName('fa-caret-right')
-            for(var i = 0; i < buttons.length; i++){
+            for(let i = 0; i < buttons.length; i++){
                 buttons[i].classList.add('fa-caret-left')
                 buttons[i].classList.remove('fa-caret-right')
             }
