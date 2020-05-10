@@ -18,7 +18,7 @@ class PlayerSchematics(schematicsDir: File, uuid: UUID) {
     }
 
     fun file(filename: String): File? {
-        val valid = filename.all { it.isLetterOrDigit() || it == '_' }
+        val valid = filename.all { it.isLetterOrDigit() || it in "._" }
         if (!valid) return null
         return File(playerDir, filename)
     }

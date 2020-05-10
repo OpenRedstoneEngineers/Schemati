@@ -9,8 +9,6 @@ import io.ktor.client.request.header
 import io.ktor.features.origin
 import io.ktor.request.host
 import io.ktor.request.port
-import io.ktor.sessions.CurrentSession
-import schemati.Schemati
 import java.util.*
 
 data class LoggedSession(val userId: UUID, val userName: String)

@@ -50,7 +50,14 @@ fun makeSchemsApp(database: Database, authConfig: AuthConfig, schems: Schematics
         }
         exception<ErrorPageException> { cause ->
             call.respondHtmlTemplate(ErrorTemplate()) {
-                content {
+                errorContent {
+                    p { +cause.content }
+                }
+            }
+        }
+        exception<LoggedInErrorException> { cause ->
+            call.respondHtmlTemplate(LoggedInErrorTemplate()) {
+                errorContent {
                     p { +cause.content }
                 }
             }
@@ -120,6 +127,8 @@ private fun PipelineContext<Unit, ApplicationCall>.user() =
 
 class RedirectException(val destination: String) : Exception()
 class ErrorPageException(val content: String) : Exception()
+class LoggedInErrorException(val content: String) : Exception()
 
 fun showErrorPage(message: String): Nothing = throw ErrorPageException(message)
+fun showLoggedInErrorPage(message: String): Nothing = throw ErrorPageException(message)
 fun redirectTo(where: String): Nothing = throw RedirectException(where)

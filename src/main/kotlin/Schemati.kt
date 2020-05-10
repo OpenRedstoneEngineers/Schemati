@@ -6,6 +6,7 @@ import io.ktor.server.engine.ApplicationEngine
 import org.bukkit.plugin.java.JavaPlugin
 import schemati.connector.JDBCDatabase
 import schemati.web.AuthConfig
+import schemati.web.startWeb
 import java.io.File
 
 class Schemati : JavaPlugin() {

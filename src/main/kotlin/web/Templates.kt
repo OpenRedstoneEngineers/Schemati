@@ -2,7 +2,6 @@ package schemati.web
 
 import io.ktor.html.*
 import kotlinx.html.*
-import java.io.File
 
 class LoggedInBaseTemplate : Template<HTML> {
     val content = Placeholder<FlowContent>()
@@ -19,13 +18,25 @@ class LoggedInBaseTemplate : Template<HTML> {
     }
 }
 
+class LoggedInErrorTemplate : Template<HTML> {
+    val errorContent = Placeholder<FlowContent>()
+    val base : LoggedInBaseTemplate = LoggedInBaseTemplate()
+    override fun HTML.apply() {
+        insert(base) {
+            content {
+                insert(errorContent)
+            }
+        }
+    }
+}
+
 class ErrorTemplate : Template<HTML> {
-    val content = Placeholder<FlowContent>()
+    val errorContent = Placeholder<FlowContent>()
     val base = BaseTemplate()
     override fun HTML.apply() {
         insert(base) {
             mainContent {
-                insert(content)
+                insert(errorContent)
             }
         }
     }

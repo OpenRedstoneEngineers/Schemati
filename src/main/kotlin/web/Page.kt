@@ -30,7 +30,7 @@ suspend fun pageLanding(call: ApplicationCall) {
 
 suspend fun pageError(call: ApplicationCall) {
     call.respondHtmlTemplate(ErrorTemplate()) {
-        content {
+        errorContent {
             p { +"The following error(s) occurred:" }
             for (e in call.parameters.getAll("error").orEmpty()) {
                 p { +e }
@@ -67,7 +67,7 @@ suspend fun pageSchems(call: ApplicationCall, schems: PlayerSchematics, user: Lo
 }
 
 suspend fun pageSchemsRename(call: ApplicationCall, schems: PlayerSchematics) {
-    val filename = call.parameters["file"] ?: showErrorPage("Did not receive parameter file")
+    val filename = call.parameters["file"] ?: showLoggedInErrorPage("Did not receive parameter file")
     val newName = call.parameters["newname"]
     if (newName == null) {
         call.respondHtmlTemplate(SchemsRenameTemplate(filename = filename)) { }
@@ -75,19 +75,19 @@ suspend fun pageSchemsRename(call: ApplicationCall, schems: PlayerSchematics) {
     }
     when (schems.rename(filename, newName)) {
         true -> call.respondRedirect("/schems")
-        false -> showErrorPage("Rename failed")
+        false -> showLoggedInErrorPage("Rename failed")
     }
 }
 
 suspend fun pageSchemsDelete(call: ApplicationCall, schems: PlayerSchematics) {
-    val filename = call.parameters["file"] ?: showErrorPage("Did not receive parameter file")
+    val filename = call.parameters["file"] ?: showLoggedInErrorPage("Did not receive parameter file")
     if ("confirm" !in call.parameters) {
         call.respondHtmlTemplate(SchemsDeleteTemplate(filename = filename)) { }
         return
     }
     when (schems.delete(filename)) {
         true -> call.respondRedirect("/schems")
-        false -> showErrorPage("Delete failed")
+        false -> showLoggedInErrorPage("Delete failed")
     }
 }
 
@@ -99,8 +99,8 @@ suspend fun pageSchemsUpload(call: ApplicationCall, schems: PlayerSchematics) {
         .readAllParts()
         .filterIsInstance<PartData.FileItem>()
     if (parts.isEmpty()) showErrorPage("Did not receive file")
-    val filename = parts.first().originalFileName ?: showErrorPage("File does not have a name")
-    val file = schems.file(filename) ?: showErrorPage("Filename is invalid")
+    val filename = parts.first().originalFileName ?: showLoggedInErrorPage("File does not have a name")
+    val file = schems.file(filename) ?: showLoggedInErrorPage("Filename is invalid")
     file.outputStream().buffered().use { destination ->
         parts.forEach { part ->
             part.streamProvider().use { it.copyTo(destination) }
@@ -110,11 +110,11 @@ suspend fun pageSchemsUpload(call: ApplicationCall, schems: PlayerSchematics) {
 }
 
 suspend fun pageSchemsDownload(call: ApplicationCall, schems: PlayerSchematics) {
-    val filename = call.parameters["file"] ?: showErrorPage("Did not receive parameter file")
+    val filename = call.parameters["file"] ?: showLoggedInErrorPage("Did not receive parameter file")
     call.response.header(
         HttpHeaders.ContentDisposition,
         ContentDisposition.Attachment.withParameter(ContentDisposition.Parameters.FileName, filename).toString()
     )
-    val file = schems.file(filename) ?: showErrorPage("Filename is invalid")
+    val file = schems.file(filename) ?: showLoggedInErrorPage("Filename is invalid")
     call.respondFile(file)
 }
