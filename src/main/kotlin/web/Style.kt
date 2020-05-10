@@ -153,10 +153,10 @@ fun getStyle(): String {
 fun getScript(): String {
     return """
         function swapDisplay(clickId) {
-            var actionOption = document.getElementById('actionOptions'+clickId);
-            var actionIcon = document.getElementById('actionIcon'+clickId);
-            var fileName = document.getElementById('fileName'+clickId);
-            var parent = fileName.parentNode;
+            let actionOption = document.getElementById('actionOptions'+clickId);
+            let actionIcon = document.getElementById('actionIcon'+clickId);
+            let fileName = document.getElementById('fileName'+clickId);
+            let parent = fileName.parentNode;
             if (actionOption.style.display === 'none') {
                 resetActions()
                 actionOption.style.display = 'inline-block';
@@ -173,17 +173,17 @@ fun getScript(): String {
             }
         }
         function resetActions() {
-            var actions = document.getElementsByClassName('fileEntryActions');
-            var names = document.getElementsByClassName('fileEntryName');
+            let actions = document.getElementsByClassName('fileEntryActions');
+            let names = document.getElementsByClassName('fileEntryName');
             for(var i = 0; i < actions.length; i++){
                 actions[i].style.display = 'none';
                 names[i].style.display = 'inline-block';
             }
-            var entries = document.getElementsByClassName('actionMenuOpen');
+            let entries = document.getElementsByClassName('actionMenuOpen');
             for(var i = 0; i < entries.length; i++){
                 entries[i].classList.remove('actionMenuOpen')
             }
-            var buttons = document.getElementsByClassName('fa-caret-right')
+            let buttons = document.getElementsByClassName('fa-caret-right')
             for(var i = 0; i < buttons.length; i++){
                 buttons[i].classList.add('fa-caret-left')
                 buttons[i].classList.remove('fa-caret-right')
