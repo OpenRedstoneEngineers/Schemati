@@ -10,6 +10,7 @@ import com.sk89q.worldedit.WorldEdit
 import com.sk89q.worldedit.bukkit.BukkitAdapter
 import com.sk89q.worldedit.extent.clipboard.io.BuiltInClipboardFormat
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardReader
 import com.sk89q.worldedit.session.ClipboardHolder
 import org.bukkit.entity.Player
 import java.io.FileInputStream
@@ -35,44 +36,35 @@ class Commands(private val worldEdit: WorldEdit) : BaseCommand() {
     @CommandAlias("/rename")
     @CommandCompletion("@schematics")
     fun rename(player: Player, schems: PlayerSchematics, filename: String, newName: String) {
-        val response = when (schems.rename(filename, newName)) {
-            true -> "Renamed schematic $filename to $newName."
-            false -> "Something went wrong!"
-        }
-        player.sendMessage(response)
+        schems.rename(filename, newName)
+        player.sendMessage("Renamed schematic $filename to $newName.")
     }
 
     @Subcommand("delete")
     @CommandAlias("/delete")
     @CommandCompletion("@schematics")
     fun delete(player: Player, schems: PlayerSchematics, filename: String) {
-        val response = when (schems.delete(filename)) {
-            true -> "Deleted schematic $filename."
-            false -> "Something went wrong!"
-        }
-        player.sendMessage(response)
+        schems.delete(filename)
+        player.sendMessage("Deleted schematic $filename")
     }
 
     @Subcommand("save")
     @CommandAlias("/save")
     @CommandCompletion("@schematics")
     fun save(player: Player, schems: PlayerSchematics, filename: String) {
-        val file = schems.file(filename) ?: run {
-            player.sendMessage("Invalid file!")
-            return
-        }
+        val file = schems.file(filename)
         val clipboard = try {
             player.weSession.clipboard.clipboard
         } catch (e: EmptyClipboardException) {
-            player.sendMessage("Your clipboard is empty! Please copy before saving.")
-            return
+            throw SchematicsException("Your clipboard is empty! Please copy before saving.", e)
         }
         try {
-            BuiltInClipboardFormat.SPONGE_SCHEMATIC
-                .getWriter(FileOutputStream(file)).use { it.write(clipboard) }
+            BuiltInClipboardFormat
+                .SPONGE_SCHEMATIC
+                .getWriter(FileOutputStream(file))
+                .use { it.write(clipboard) }
         } catch (e: IOException) {
-            player.sendMessage(ioErrorMessage)
-            return
+            throw SchematicsException(ioErrorMessage, e)
         }
         player.sendMessage("Schematic $filename has been saved.")
     }
@@ -81,36 +73,27 @@ class Commands(private val worldEdit: WorldEdit) : BaseCommand() {
     @CommandAlias("/load")
     @CommandCompletion("@schematics")
     fun load(player: Player, schems: PlayerSchematics, filename: String) {
-        val file = schems.file(filename) ?: run {
-            player.sendMessage("Invalid filename.")
-            return
-        }
-        val format = ClipboardFormats.findByFile(file) ?: run {
-            player.sendMessage("Invalid or unrecognized schematic format.")
-            return
-        }
+        val file = schems.file(filename)
+        val format = ClipboardFormats.findByFile(file)
+            ?: throw SchematicsException("Invalid or unrecognized schematic format.")
         val clipboard = try {
-            format.getReader(FileInputStream(file)).use { reader ->
-                reader.read()
-            }
+            format
+                .getReader(FileInputStream(file))
+                .use(ClipboardReader::read)
         } catch (e: IOException) {
-            player.sendMessage(ioErrorMessage)
-            return
+            throw SchematicsException(ioErrorMessage, e)
         }
         player.weSession.clipboard = ClipboardHolder(clipboard)
+        player.sendMessage("Loaded schematic $filename to clipboard.")
     }
 
     private val Player.weSession: LocalSession
         get() = worldEdit.sessionManager.get(BukkitAdapter.adapt(this))
 }
 
-//        return
-
-
 class SchematicCompletionHandler(private val schems: Schematics) :
     CommandCompletions.CommandCompletionHandler<BukkitCommandCompletionContext>
 {
-    override fun getCompletions(context: BukkitCommandCompletionContext): MutableCollection<String> =
-        schems.forPlayer(context.player.uniqueId).list().toMutableList()
+    override fun getCompletions(context: BukkitCommandCompletionContext): Collection<String> =
+        schems.forPlayer(context.player.uniqueId).list().toList()
 }
-

@@ -1,6 +1,6 @@
 package schemati
 
-import co.aikar.commands.PaperCommandManager
+import co.aikar.commands.*
 import com.sk89q.worldedit.bukkit.WorldEditPlugin
 import io.ktor.server.engine.ApplicationEngine
 import org.bukkit.plugin.java.JavaPlugin
@@ -13,6 +13,19 @@ class Schemati : JavaPlugin() {
     private var web: ApplicationEngine? = null
     private var networkDatabase: NetworkDatabase? = null
 
+    private fun handleCommandException(
+        command: BaseCommand,
+        registeredCommand: RegisteredCommand<*>,
+        sender: CommandIssuer,
+        args: List<String>,
+        throwable: Throwable
+    ): Boolean {
+        val message = (throwable as? SchematicsException)?.message ?: return false
+        // TODO: figure out what to do with sendError
+        sender.sendMessage(message)
+        return true
+    }
+
     override fun onEnable() {
         loadConfig()
 
@@ -24,8 +37,8 @@ class Schemati : JavaPlugin() {
             }
             commandCompletions.registerCompletion("schematics", SchematicCompletionHandler(schems))
             registerCommand(Commands(wePlugin.worldEdit))
+            setDefaultExceptionHandler(::handleCommandException, true)
         }
-
         networkDatabase = config.getConfigurationSection("network_database")!!.run {
             NetworkDatabase(
                 database = getString("database")!!,

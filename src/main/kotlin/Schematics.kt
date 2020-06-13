@@ -2,54 +2,65 @@ package schemati
 
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats
 import java.io.File
+import java.io.IOException
 import java.util.*
 
+// TODO: catch exception somewhere during instantiation
 class Schematics(private val schematicsDir: File) {
-    fun forPlayer(playerId: UUID): PlayerSchematics = PlayerSchematics(schematicsDir, playerId)
+    init {
+        schematicsDir.ensureDirectoryExists()
+    }
+
+    fun forPlayer(playerId: UUID) = PlayerSchematics(schematicsDir, playerId)
 }
 
+// TODO: maybe catch exception from ensureDirectoryExists?
 class PlayerSchematics(schematicsDir: File, uuid: UUID) {
-    init {
-        if (!schematicsDir.exists())
-            schematicsDir.mkdir()
-    }
+    private val playerDir = File(schematicsDir, uuid.toString())
+        .also(File::ensureDirectoryExists)
 
-    private val playerDir = File(schematicsDir, uuid.toString()).apply {
-        if (!exists()) mkdir()
-    }
-
-    fun file(filename: String): File? {
-        if (!filename.isValidName()) return null
+    fun file(filename: String): File {
+        if (!filename.isValidName())
+            throw SchematicsException("Filename is invalid")
         return File(playerDir, filename)
     }
 
-    fun list(): List<String> {
-        // list() returns null if the file is invalid.
-        // In this case it should always be valid because playerDir creates it should it not exist.
-        val files = playerDir.listFiles { file ->
-            file.isValidSchematic() && file.name.isValidName()
-        } ?: return emptyList()
-        return files.map { file -> file.name }
+    fun list(): List<String> = playerDir
+        .listFiles(File::isValidSchematic)
+        ?.map { it.name } ?: throw SchematicsException("Could not list files")
+
+    fun rename(filename: String, newName: String) {
+        val file = file(filename)
+        val new = file(newName)
+        if (file.extension != new.extension)
+            throw SchematicsException("You cannot change the file extension")
+        if (!file.renameTo(new))
+            throw SchematicsException("Could not rename")
     }
 
-    fun rename(filename: String, newName: String): Boolean {
-        val file = file(filename) ?: return false
-        val new = file(newName) ?: return false
-        if (file.extension != new.extension) return false
-        return file.renameTo(new)
-    }
-
-    fun delete(filename: String): Boolean {
-        if (!filename.isValidName()) return false
-        return file(filename)?.delete() ?: false
-    }
-
-    private fun File.isValidSchematic(): Boolean {
-        ClipboardFormats.findByFile(this) ?: return false
-        return true
-    }
-
-    private fun String.isValidName(): Boolean {
-        return this.matches(Regex("""[a-zA-Z0-9_.]+?\.(schem(atic)?)"""))
+    fun delete(filename: String) {
+        if (!file(filename).delete())
+            throw SchematicsException("Could not delete")
     }
 }
+
+private fun File.isValidSchematic() =
+    name.isValidName() && ClipboardFormats.findByFile(this) != null
+
+private fun String.isValidName() =
+    this.matches(Regex("""[a-zA-Z0-9_.]+\.schem(atic)?"""))
+
+private fun File.ensureDirectoryExists() {
+    if (exists()) {
+        if (!isDirectory)
+            throw IOException("$absolutePath exists but is not a directory")
+    } else if (!mkdir()) {
+        throw IOException("Could not create directory $absolutePath")
+    }
+}
+
+class SchematicsException : Exception {
+    constructor(message: String) : super(message)
+    constructor(message: String, cause: Throwable) : super(message, cause)
+}
+

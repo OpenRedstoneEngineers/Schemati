@@ -23,6 +23,7 @@ import io.ktor.sessions.*
 import io.ktor.util.pipeline.PipelineContext
 import kotlinx.html.p
 import schemati.Schematics
+import schemati.SchematicsException
 import schemati.connector.Database
 
 const val discordApiBase = "https://discordapp.com/api/"
@@ -58,6 +59,14 @@ fun makeSchemsApp(networkDatabase: Database, authConfig: AuthConfig, schems: Sch
             call.respondHtmlTemplate(LoggedInErrorTemplate()) {
                 errorContent {
                     p { +cause.content }
+                }
+            }
+        }
+        // TODO: are these logged?
+        exception<SchematicsException> { cause ->
+            call.respondHtmlTemplate(LoggedInErrorTemplate()) {
+                errorContent {
+                    p { +(cause.message ?: "Something went wrong!") }
                 }
             }
         }
@@ -129,5 +138,5 @@ class ErrorPageException(val content: String) : Exception()
 class LoggedInErrorException(val content: String) : Exception()
 
 fun showErrorPage(message: String): Nothing = throw ErrorPageException(message)
-fun showLoggedInErrorPage(message: String): Nothing = throw ErrorPageException(message)
+fun showLoggedInErrorPage(message: String): Nothing = throw LoggedInErrorException(message)
 fun redirectTo(where: String): Nothing = throw RedirectException(where)

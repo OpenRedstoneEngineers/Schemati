@@ -58,8 +58,7 @@ suspend fun pageLogin(call: ApplicationCall, networkDatabase: Database) {
 // Common functionality with ingame commands
 
 suspend fun pageSchems(call: ApplicationCall, schems: PlayerSchematics, user: LoggedSession) {
-    val files = schems.list()
-    call.respondHtmlTemplate(SchemsListTemplate(files)) {
+    call.respondHtmlTemplate(SchemsListTemplate(schems.list())) {
         username {
             +user.userName
         }
@@ -73,10 +72,8 @@ suspend fun pageSchemsRename(call: ApplicationCall, schems: PlayerSchematics) {
         call.respondHtmlTemplate(SchemsRenameTemplate(filename = filename)) { }
         return
     }
-    when (schems.rename(filename, newName)) {
-        true -> call.respondRedirect("/schems")
-        false -> showLoggedInErrorPage("Rename failed")
-    }
+    schems.rename(filename, newName)
+    call.respondRedirect("/schems")
 }
 
 suspend fun pageSchemsDelete(call: ApplicationCall, schems: PlayerSchematics) {
@@ -85,10 +82,8 @@ suspend fun pageSchemsDelete(call: ApplicationCall, schems: PlayerSchematics) {
         call.respondHtmlTemplate(SchemsDeleteTemplate(filename = filename)) { }
         return
     }
-    when (schems.delete(filename)) {
-        true -> call.respondRedirect("/schems")
-        false -> showLoggedInErrorPage("Delete failed")
-    }
+    schems.delete(filename)
+    call.respondRedirect("/schems")
 }
 
 // Web specific functionality
@@ -100,7 +95,7 @@ suspend fun pageSchemsUpload(call: ApplicationCall, schems: PlayerSchematics) {
         .filterIsInstance<PartData.FileItem>()
     if (parts.isEmpty()) showErrorPage("Did not receive file")
     val filename = parts.first().originalFileName ?: showLoggedInErrorPage("File does not have a name")
-    val file = schems.file(filename) ?: showLoggedInErrorPage("Filename is invalid")
+    val file = schems.file(filename)
     file.outputStream().buffered().use { destination ->
         parts.forEach { part ->
             part.streamProvider().use { it.copyTo(destination) }
@@ -115,6 +110,5 @@ suspend fun pageSchemsDownload(call: ApplicationCall, schems: PlayerSchematics) 
         HttpHeaders.ContentDisposition,
         ContentDisposition.Attachment.withParameter(ContentDisposition.Parameters.FileName, filename).toString()
     )
-    val file = schems.file(filename) ?: showLoggedInErrorPage("Filename is invalid")
-    call.respondFile(file)
+    call.respondFile(schems.file(filename))
 }
