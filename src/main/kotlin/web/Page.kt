@@ -44,12 +44,12 @@ suspend fun pageLogout(call: ApplicationCall) {
     call.respondRedirect("/")
 }
 
-suspend fun pageLogin(call: ApplicationCall, database: Database) {
+suspend fun pageLogin(call: ApplicationCall, networkDatabase: Database) {
     val principal = call.authentication.principal<OAuthAccessTokenResponse.OAuth2>()
         ?: redirectTo("/")
 
     val id = fetchId(principal.accessToken) ?: showErrorPage("Login error: Invalid principal!")
-    val user = database.findUserByDiscordId(id) ?: showErrorPage("Login error: User is not linked!")
+    val user = networkDatabase.findUserByDiscordId(id) ?: showErrorPage("Login error: User is not linked!")
 
     call.sessions.set(LoggedSession(user.mojangId, user.ign))
     call.respondRedirect("/schems")

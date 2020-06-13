@@ -32,7 +32,7 @@ fun startWeb(port: Int, database: Database, authConfig: AuthConfig, schems: Sche
 
 data class AuthConfig(val clientId: String, val clientSecret: String, val scopes: List<String>)
 
-fun makeSchemsApp(database: Database, authConfig: AuthConfig, schems: Schematics): Application.() -> Unit = {
+fun makeSchemsApp(networkDatabase: Database, authConfig: AuthConfig, schems: Schematics): Application.() -> Unit = {
     val loginProvider = OAuthServerSettings.OAuth2ServerSettings(
         name = "Discord",
         authorizeUrl = "${discordApiBase}oauth2/authorize",
@@ -114,7 +114,7 @@ fun makeSchemsApp(database: Database, authConfig: AuthConfig, schems: Schematics
                     }
                 }
                 handle {
-                    pageLogin(call, database)
+                    pageLogin(call, networkDatabase)
                 }
             }
         }

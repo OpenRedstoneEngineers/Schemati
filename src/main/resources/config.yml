@@ -8,7 +8,7 @@ web:
     scopes:
       - "identify"
 
-database:
+network_database:
   port: 3306
   host: "localhost"
   database: "***"
@@ -16,4 +16,4 @@ database:
   password: "***"
 
 # Some folder the server can read/write to
-schematicsDirectory: "./"
+schematicsDirectory: "./schems"

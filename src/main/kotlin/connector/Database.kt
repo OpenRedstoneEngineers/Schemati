@@ -12,7 +12,7 @@ interface Database {
     fun findUserByDiscordId(discordId: String): User?
 }
 
-class JDBCDatabase(port: Int = 3306, host: String = "localhost", database: String, username: String, password: String): Database {
+class NetworkDatabase(port: Int = 3306, host: String = "localhost", database: String, username: String, password: String): Database {
     private val toUser: (Row) -> User = { row ->
         User(
             UUID.fromString(row.string("m_uuid")),

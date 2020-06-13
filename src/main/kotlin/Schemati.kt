@@ -4,14 +4,14 @@ import co.aikar.commands.PaperCommandManager
 import com.sk89q.worldedit.bukkit.WorldEditPlugin
 import io.ktor.server.engine.ApplicationEngine
 import org.bukkit.plugin.java.JavaPlugin
-import schemati.connector.JDBCDatabase
+import schemati.connector.NetworkDatabase
 import schemati.web.AuthConfig
 import schemati.web.startWeb
 import java.io.File
 
 class Schemati : JavaPlugin() {
     private var web: ApplicationEngine? = null
-    private var database: JDBCDatabase? = null
+    private var networkDatabase: NetworkDatabase? = null
 
     override fun onEnable() {
         loadConfig()
@@ -26,8 +26,8 @@ class Schemati : JavaPlugin() {
             registerCommand(Commands(wePlugin.worldEdit))
         }
 
-        database = config.getConfigurationSection("database")!!.run {
-            JDBCDatabase(
+        networkDatabase = config.getConfigurationSection("network_database")!!.run {
+            NetworkDatabase(
                 database = getString("database")!!,
                 username = getString("username")!!,
                 password = getString("password")!!
@@ -50,7 +50,7 @@ class Schemati : JavaPlugin() {
         if (config.contains("web.port")) {
             web = startWeb(
                 config.getConfigurationSection("web")!!.getInt("port"),
-                database!!,
+                networkDatabase!!,
                 authConfig,
                 schems
             )
@@ -58,7 +58,7 @@ class Schemati : JavaPlugin() {
     }
 
     override fun onDisable() {
-        database?.unload()
+        networkDatabase?.unload()
         web?.stop(1000, 1000)
     }
 
