@@ -1,17 +1,23 @@
 package schemati
 
-import co.aikar.commands.*
+import co.aikar.commands.BaseCommand
+import co.aikar.commands.CommandIssuer
+import co.aikar.commands.PaperCommandManager
+import co.aikar.commands.RegisteredCommand
 import com.sk89q.worldedit.bukkit.WorldEditPlugin
 import io.ktor.server.engine.ApplicationEngine
 import org.bukkit.plugin.java.JavaPlugin
+import schemati.connector.Database
 import schemati.connector.NetworkDatabase
 import schemati.web.AuthConfig
 import schemati.web.startWeb
 import java.io.File
+import java.util.logging.Level
+import kotlin.concurrent.thread
 
 class Schemati : JavaPlugin() {
     private var web: ApplicationEngine? = null
-    private var networkDatabase: NetworkDatabase? = null
+    private var networkDatabase: Database? = null
 
     private fun handleCommandException(
         command: BaseCommand,
@@ -20,9 +26,11 @@ class Schemati : JavaPlugin() {
         args: List<String>,
         throwable: Throwable
     ): Boolean {
-        val message = (throwable as? SchematicsException)?.message ?: return false
+        logger.log(Level.SEVERE, "Error while executing command", throwable)
+        val exception = throwable as? SchematicsException ?: return false
         // TODO: figure out what to do with sendError
-        sender.sendMessage(message)
+        val message = exception.message ?: "Something went wrong!"
+        sender.sendMessage("[Schemati] $message")
         return true
     }
 
@@ -37,8 +45,9 @@ class Schemati : JavaPlugin() {
             }
             commandCompletions.registerCompletion("schematics", SchematicCompletionHandler(schems))
             registerCommand(Commands(wePlugin.worldEdit))
-            setDefaultExceptionHandler(::handleCommandException, true)
+            setDefaultExceptionHandler(::handleCommandException, false)
         }
+
         networkDatabase = config.getConfigurationSection("network_database")!!.run {
             NetworkDatabase(
                 database = getString("database")!!,
@@ -58,7 +67,6 @@ class Schemati : JavaPlugin() {
                 scopes = getStringList("scopes")
             )
         }
-
 
         if (config.contains("web.port")) {
             web = startWeb(

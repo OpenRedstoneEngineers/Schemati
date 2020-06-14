@@ -74,12 +74,10 @@ fun makeSchemsApp(networkDatabase: Database, authConfig: AuthConfig, schems: Sch
 
     install(DefaultHeaders)
 
-    // Registers session management
     install(Sessions) {
         cookie<LoggedSession>("sessionId", storage = SessionStorageMemory())
     }
 
-    // Registers authentication
     install(Authentication) {
         oauth("discordOauth") {
             client = HttpClient(Apache)
@@ -90,7 +88,6 @@ fun makeSchemsApp(networkDatabase: Database, authConfig: AuthConfig, schems: Sch
         }
     }
 
-    // Registers routes
     install(Routing) {
         get("/") {
             pageLanding(call)
@@ -115,6 +112,7 @@ fun makeSchemsApp(networkDatabase: Database, authConfig: AuthConfig, schems: Sch
                 pageSchemsDelete(call, schems.forPlayer(user().userId))
             }
         }
+
         authenticate("discordOauth") {
             route("/login") {
                 param("error") {

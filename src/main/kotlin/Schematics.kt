@@ -3,6 +3,8 @@ package schemati
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats
 import java.io.File
 import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.Path
 import java.util.*
 
 // TODO: catch exception somewhere during instantiation
@@ -19,10 +21,16 @@ class PlayerSchematics(schematicsDir: File, uuid: UUID) {
     private val playerDir = File(schematicsDir, uuid.toString())
         .also(File::ensureDirectoryExists)
 
-    fun file(filename: String): File {
+    // TODO: get rid of bool
+    // also the whole validation business is weird
+    // this only checks name and existence,
+    // while others check name and validity but not existence directly
+    fun file(filename: String, mustExist: Boolean = true): File {
         if (!filename.isValidName())
             throw SchematicsException("Filename is invalid")
-        return File(playerDir, filename)
+        return File(playerDir, filename).apply {
+            if (mustExist && !exists()) throw SchematicsException("File does not exist")
+        }
     }
 
     fun list(): List<String> = playerDir
@@ -31,7 +39,7 @@ class PlayerSchematics(schematicsDir: File, uuid: UUID) {
 
     fun rename(filename: String, newName: String) {
         val file = file(filename)
-        val new = file(newName)
+        val new = file(newName, mustExist = false)
         if (file.extension != new.extension)
             throw SchematicsException("You cannot change the file extension")
         if (!file.renameTo(new))

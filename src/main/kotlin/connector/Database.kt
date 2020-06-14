@@ -10,6 +10,7 @@ data class User(val mojangId: UUID, val discordId: String, val ign: String)
 
 interface Database {
     fun findUserByDiscordId(discordId: String): User?
+    fun unload()
 }
 
 class NetworkDatabase(port: Int = 3306, host: String = "localhost", database: String, username: String, password: String): Database {
@@ -28,7 +29,7 @@ class NetworkDatabase(port: Int = 3306, host: String = "localhost", database: St
         return connection.first(selectUserFromDiscordId, toUser)
     }
 
-    fun unload() {
+    override fun unload() {
         connection.close()
     }
 }

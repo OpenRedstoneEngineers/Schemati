@@ -52,7 +52,7 @@ class Commands(private val worldEdit: WorldEdit) : BaseCommand() {
     @CommandAlias("/save")
     @CommandCompletion("@schematics")
     fun save(player: Player, schems: PlayerSchematics, filename: String) {
-        val file = schems.file(filename)
+        val file = schems.file(filename, mustExist = false)
         val clipboard = try {
             player.weSession.clipboard.clipboard
         } catch (e: EmptyClipboardException) {

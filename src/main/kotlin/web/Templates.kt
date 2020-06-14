@@ -25,6 +25,8 @@ class LoggedInErrorTemplate : Template<HTML> {
         insert(base) {
             content {
                 insert(errorContent)
+                // TODO: install design
+                a("/schems") { +"Back to start" }
             }
         }
     }
@@ -37,6 +39,8 @@ class ErrorTemplate : Template<HTML> {
         insert(base) {
             mainContent {
                 insert(errorContent)
+                // TODO: install design
+                a("/schems") { +"Back to start" }
             }
         }
     }

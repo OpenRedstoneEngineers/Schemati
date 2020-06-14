@@ -95,7 +95,7 @@ suspend fun pageSchemsUpload(call: ApplicationCall, schems: PlayerSchematics) {
         .filterIsInstance<PartData.FileItem>()
     if (parts.isEmpty()) showErrorPage("Did not receive file")
     val filename = parts.first().originalFileName ?: showLoggedInErrorPage("File does not have a name")
-    val file = schems.file(filename)
+    val file = schems.file(filename, mustExist = false)
     file.outputStream().buffered().use { destination ->
         parts.forEach { part ->
             part.streamProvider().use { it.copyTo(destination) }
@@ -106,9 +106,10 @@ suspend fun pageSchemsUpload(call: ApplicationCall, schems: PlayerSchematics) {
 
 suspend fun pageSchemsDownload(call: ApplicationCall, schems: PlayerSchematics) {
     val filename = call.parameters["file"] ?: showLoggedInErrorPage("Did not receive parameter file")
+    val file = schems.file(filename)
     call.response.header(
         HttpHeaders.ContentDisposition,
         ContentDisposition.Attachment.withParameter(ContentDisposition.Parameters.FileName, filename).toString()
     )
-    call.respondFile(schems.file(filename))
+    call.respondFile(file)
 }
