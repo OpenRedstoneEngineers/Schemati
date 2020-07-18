@@ -12,8 +12,8 @@ import schemati.connector.NetworkDatabase
 import schemati.web.AuthConfig
 import schemati.web.startWeb
 import java.io.File
+import java.util.*
 import java.util.logging.Level
-import kotlin.concurrent.thread
 
 class Schemati : JavaPlugin() {
     private var web: ApplicationEngine? = null
@@ -44,7 +44,13 @@ class Schemati : JavaPlugin() {
                 schems.forPlayer(context.player.uniqueId)
             }
             commandCompletions.registerCompletion("schematics", SchematicCompletionHandler(schems))
-            registerCommand(Commands(wePlugin.worldEdit))
+            registerCommand(
+                Commands(
+                    wePlugin.worldEdit,
+                    config.getConfigurationSection("web")!!.getString("url")!!,
+                    schems.forPlayer(UUID.fromString("00000000-0000-0000-0000-000000000000"))
+                )
+            )
             setDefaultExceptionHandler(::handleCommandException, false)
         }
 
@@ -68,7 +74,7 @@ class Schemati : JavaPlugin() {
             )
         }
 
-        if (config.contains("web.port")) {
+        if (config.getConfigurationSection("web")!!.getBoolean("enabled")) {
             web = startWeb(
                 config.getConfigurationSection("web")!!.getInt("port"),
                 networkDatabase!!,

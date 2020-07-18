@@ -25,6 +25,7 @@ import kotlinx.html.p
 import schemati.Schematics
 import schemati.SchematicsException
 import schemati.connector.Database
+import java.util.*
 
 const val discordApiBase = "https://discordapp.com/api/"
 
@@ -91,6 +92,9 @@ fun makeSchemsApp(networkDatabase: Database, authConfig: AuthConfig, schems: Sch
     install(Routing) {
         get("/") {
             pageLanding(call)
+        }
+        get("/download") {
+            pageDownload(call, schems.forPlayer(UUID.fromString("00000000-0000-0000-0000-000000000000")))
         }
         get("/logout") {
             pageLogout(call)

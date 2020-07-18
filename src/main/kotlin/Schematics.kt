@@ -3,8 +3,6 @@ package schemati
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats
 import java.io.File
 import java.io.IOException
-import java.nio.file.Files
-import java.nio.file.Path
 import java.util.*
 
 // TODO: catch exception somewhere during instantiation
@@ -39,7 +37,13 @@ class PlayerSchematics(schematicsDir: File, uuid: UUID) {
 
     fun rename(filename: String, newName: String) {
         val file = file(filename)
-        val new = file(newName, mustExist = false)
+        val new = file(
+            if ("." !in newName) {
+                "$newName.${file.extension}"
+            } else {
+                newName
+            }, mustExist = false
+        )
         if (file.extension != new.extension)
             throw SchematicsException("You cannot change the file extension")
         if (!file.renameTo(new))

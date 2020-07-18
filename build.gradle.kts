@@ -7,7 +7,7 @@ plugins {
 }
 
 group = ""
-version = "1.0-SNAPSHOT"
+version = "1.0"
 
 var ktor_version = "1.3.2"
 
@@ -54,10 +54,8 @@ dependencies {
     implementation(group = "mysql", name = "mysql-connector-java", version = "8.0.20")
     implementation(group = "com.vladsch.kotlin-jdbc", name = "kotlin-jdbc", version = "0.5.0")
 
-    compileOnly(group = "org.spigotmc", name = "spigot-api", version = "1.15.1-R0.1-SNAPSHOT")
-    compileOnly(group = "com.sk89q.worldedit", name = "worldedit-bukkit", version = "7.1.0-SNAPSHOT")
-
-    kapt(group = "org.spigotmc", name = "plugin-annotations", version = "1.2.2-SNAPSHOT")
+    compileOnly(group = "org.spigotmc", name = "spigot-api", version = "1.16.1-R0.1-SNAPSHOT")
+    compileOnly(group = "com.sk89q.worldedit", name = "worldedit-bukkit", version = "7.2.0-SNAPSHOT")
 }
 
 tasks.shadowJar {

@@ -1,7 +1,7 @@
 web:
-  proxied: false
+  enabled: true
   port: 8080
-  host: "localhost"
+  url: "http://schemati.openredstone.org:8080/"
   oauth:
     clientId: "***"
     clientSecret: "***"

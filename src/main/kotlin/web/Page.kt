@@ -10,14 +10,18 @@ import io.ktor.http.content.PartData
 import io.ktor.http.content.readAllParts
 import io.ktor.http.content.streamProvider
 import io.ktor.request.receiveMultipart
-import io.ktor.response.*
+import io.ktor.response.header
+import io.ktor.response.respondFile
+import io.ktor.response.respondRedirect
 import io.ktor.sessions.clear
 import io.ktor.sessions.get
 import io.ktor.sessions.sessions
 import io.ktor.sessions.set
-import kotlinx.html.*
+import kotlinx.html.p
 import schemati.PlayerSchematics
 import schemati.connector.Database
+import java.time.Duration
+import java.time.Instant
 
 suspend fun pageLanding(call: ApplicationCall) {
     val session = call.sessions.get<LoggedSession>()
@@ -42,6 +46,24 @@ suspend fun pageError(call: ApplicationCall) {
 suspend fun pageLogout(call: ApplicationCall) {
     call.sessions.clear<LoggedSession>()
     call.respondRedirect("/")
+}
+
+suspend fun pageDownload(call: ApplicationCall, schems: PlayerSchematics) {
+    val key = call.parameters["file"] ?: showLoggedInErrorPage("Did not receive parameter file")
+    schems.list().filter {
+        schems.file(it).lastModified() < Instant.now().minus(Duration.ofDays(7)).toEpochMilli()
+    }.forEach(schems::delete)
+    val filename = schems.list().firstOrNull { it.substringBefore(".") == key }
+        ?: showErrorPage("Schematic download no longer available")
+    call.response.header(
+        HttpHeaders.ContentDisposition,
+        ContentDisposition.Attachment.withParameter(
+            ContentDisposition.Parameters.FileName,
+            filename.substringAfter(".")
+        ).toString()
+    )
+    val file = schems.file(filename)
+    call.respondFile(file)
 }
 
 suspend fun pageLogin(call: ApplicationCall, networkDatabase: Database) {
