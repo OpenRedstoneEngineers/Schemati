@@ -29,7 +29,8 @@ import kotlin.random.Random
 @CommandAlias("/schematics")
 @Description("Manage your schematics")
 @CommandPermission("schemati.schematics")
-class Commands(private val worldEdit: WorldEdit, private val url: String, private val serverSchems: PlayerSchematics) : BaseCommand() {
+class Commands(private val worldEdit: WorldEdit, private val url: String, private val serverSchems: PlayerSchematics) :
+    BaseCommand() {
     private val ioErrorMessage =
         "An unexpected error happened against our expectations. Please consult your dictionary."
 
@@ -83,7 +84,14 @@ class Commands(private val worldEdit: WorldEdit, private val url: String, privat
     @CommandAlias("/save")
     @CommandCompletion("@schematics")
     fun save(player: Player, schems: PlayerSchematics, filename: String) {
-        val file = schems.file(filename, mustExist = false)
+        val file = schems.file(
+            if ("." !in filename) {
+                "${filename}.schem"
+            } else {
+                filename
+            }
+            , mustExist = false
+        )
         val clipboard = try {
             player.weSession.clipboard.clipboard
         } catch (e: EmptyClipboardException) {
