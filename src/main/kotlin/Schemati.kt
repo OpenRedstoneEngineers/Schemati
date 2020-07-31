@@ -77,6 +77,7 @@ class Schemati : JavaPlugin() {
         if (config.getConfigurationSection("web")!!.getBoolean("enabled")) {
             web = startWeb(
                 config.getConfigurationSection("web")!!.getInt("port"),
+                config.getConfigurationSection("web")!!.getString("url")!!,
                 networkDatabase!!,
                 authConfig,
                 schems

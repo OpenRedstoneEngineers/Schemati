@@ -29,12 +29,12 @@ import java.util.*
 
 const val discordApiBase = "https://discordapp.com/api/"
 
-fun startWeb(port: Int, database: Database, authConfig: AuthConfig, schems: Schematics): ApplicationEngine =
-    embeddedServer(Netty, port = port, module = makeSchemsApp(database, authConfig, schems)).start()
+fun startWeb(port: Int, baseUri: String, database: Database, authConfig: AuthConfig, schems: Schematics): ApplicationEngine =
+    embeddedServer(Netty, port = port, module = makeSchemsApp(database, baseUri, authConfig, schems)).start()
 
 data class AuthConfig(val clientId: String, val clientSecret: String, val scopes: List<String>)
 
-fun makeSchemsApp(networkDatabase: Database, authConfig: AuthConfig, schems: Schematics): Application.() -> Unit = {
+fun makeSchemsApp(networkDatabase: Database, baseUri: String, authConfig: AuthConfig, schems: Schematics): Application.() -> Unit = {
     val loginProvider = OAuthServerSettings.OAuth2ServerSettings(
         name = "Discord",
         authorizeUrl = "${discordApiBase}oauth2/authorize",
@@ -85,7 +85,7 @@ fun makeSchemsApp(networkDatabase: Database, authConfig: AuthConfig, schems: Sch
             providerLookup = {
                 loginProvider
             }
-            urlProvider = { redirectUrl("/login") }
+            urlProvider = { redirectUrl("/login", absoluteBaseUri = baseUri) }
         }
     }
 

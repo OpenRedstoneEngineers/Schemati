@@ -21,9 +21,13 @@ suspend fun fetchId(accessToken: String) : String? {
     return data["id"] as? String
 }
 
-fun ApplicationCall.redirectUrl(path: String): String {
-    val defaultPort = if (request.origin.scheme == "http") 80 else 443
-    val hostPort = request.host() + request.port().let { port -> if (port == defaultPort) "" else ":$port" }
-    val protocol = request.origin.scheme
-    return "$protocol://$hostPort$path"
+fun ApplicationCall.redirectUrl(relativePath: String, absoluteBaseUri: String? = null): String {
+    return if (absoluteBaseUri!=null) {
+        "$absoluteBaseUri$relativePath"
+    } else {
+        val defaultPort = if (request.origin.scheme == "http") 80 else 443
+        val hostPort = request.host() + request.port().let { port -> if (port == defaultPort) "" else ":$port" }
+        val protocol = request.origin.scheme
+        "$protocol://$hostPort$relativePath"
+    }
 }
