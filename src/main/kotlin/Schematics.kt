@@ -32,8 +32,8 @@ class PlayerSchematics(schematicsDir: File, uuid: UUID) {
     }
 
     fun list(): List<String> = playerDir
-        .listFiles(File::isValidSchematic)
-        ?.map { it.name } ?: throw SchematicsException("Could not list files")
+        .listFiles { file -> file.name.isValidName() }
+        ?.map { it.name }?.sorted() ?: throw SchematicsException("Could not list files")
 
     fun rename(filename: String, newName: String) {
         val file = file(filename)
@@ -56,7 +56,7 @@ class PlayerSchematics(schematicsDir: File, uuid: UUID) {
     }
 }
 
-private fun File.isValidSchematic() =
+public fun File.isValidSchematic() =
     name.isValidName() && ClipboardFormats.findByFile(this) != null
 
 private fun String.isValidName() =

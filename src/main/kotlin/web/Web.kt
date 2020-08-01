@@ -56,6 +56,13 @@ fun makeSchemsApp(networkDatabase: Database, baseUri: String, authConfig: AuthCo
                 }
             }
         }
+        exception<SchematicUploadException> { cause ->
+            call.respondHtmlTemplate(UploadErrorTemplate()) {
+                errorContent {
+                    p { +cause.content}
+                }
+            }
+        }
         exception<LoggedInErrorException> { cause ->
             call.respondHtmlTemplate(LoggedInErrorTemplate()) {
                 errorContent {
@@ -135,10 +142,12 @@ fun makeSchemsApp(networkDatabase: Database, baseUri: String, authConfig: AuthCo
 private fun PipelineContext<Unit, ApplicationCall>.user() =
     call.sessions.get<LoggedSession>() ?: redirectTo("/")
 
+class SchematicUploadException(val content: String) : Exception()
 class RedirectException(val destination: String) : Exception()
 class ErrorPageException(val content: String) : Exception()
 class LoggedInErrorException(val content: String) : Exception()
 
 fun showErrorPage(message: String): Nothing = throw ErrorPageException(message)
+fun showUploadErrorPage(message: String): Nothing = throw SchematicUploadException(message)
 fun showLoggedInErrorPage(message: String): Nothing = throw LoggedInErrorException(message)
 fun redirectTo(where: String): Nothing = throw RedirectException(where)

@@ -18,6 +18,22 @@ class LoggedInBaseTemplate : Template<HTML> {
     }
 }
 
+class UploadErrorTemplate : Template<HTML> {
+    val errorContent = Placeholder<FlowContent>()
+    val base : LoggedInBaseTemplate = LoggedInBaseTemplate()
+    override fun HTML.apply() {
+        insert(base) {
+            content {
+                insert(errorContent)
+                p {
+                    classes = setOf("center")
+                    a("/schems") { +"Back to start" }
+                }
+            }
+        }
+    }
+}
+
 class LoggedInErrorTemplate : Template<HTML> {
     val errorContent = Placeholder<FlowContent>()
     val base : LoggedInBaseTemplate = LoggedInBaseTemplate()

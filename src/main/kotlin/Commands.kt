@@ -151,7 +151,7 @@ class Commands(private val worldEdit: WorldEdit, private val url: String, privat
 }
 
 class SchematicCompletionHandler(private val schems: Schematics) :
-    CommandCompletions.CommandCompletionHandler<BukkitCommandCompletionContext> {
+    CommandCompletions.AsyncCommandCompletionHandler<BukkitCommandCompletionContext> {
     override fun getCompletions(context: BukkitCommandCompletionContext): Collection<String> =
         schems.forPlayer(context.player.uniqueId).list().toList()
 }

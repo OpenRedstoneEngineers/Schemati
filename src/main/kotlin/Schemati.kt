@@ -1,9 +1,6 @@
 package schemati
 
-import co.aikar.commands.BaseCommand
-import co.aikar.commands.CommandIssuer
-import co.aikar.commands.PaperCommandManager
-import co.aikar.commands.RegisteredCommand
+import co.aikar.commands.*
 import com.sk89q.worldedit.bukkit.WorldEditPlugin
 import io.ktor.server.engine.ApplicationEngine
 import org.bukkit.plugin.java.JavaPlugin
@@ -43,7 +40,7 @@ class Schemati : JavaPlugin() {
             commandContexts.registerIssuerOnlyContext(PlayerSchematics::class.java) { context ->
                 schems.forPlayer(context.player.uniqueId)
             }
-            commandCompletions.registerCompletion("schematics", SchematicCompletionHandler(schems))
+            commandCompletions.registerAsyncCompletion("schematics", SchematicCompletionHandler(schems))
             registerCommand(
                 Commands(
                     wePlugin.worldEdit,

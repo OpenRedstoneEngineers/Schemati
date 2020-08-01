@@ -20,6 +20,7 @@ import io.ktor.sessions.set
 import kotlinx.html.p
 import schemati.PlayerSchematics
 import schemati.connector.Database
+import schemati.isValidSchematic
 import java.time.Duration
 import java.time.Instant
 
@@ -115,13 +116,17 @@ suspend fun pageSchemsUpload(call: ApplicationCall, schems: PlayerSchematics) {
         .receiveMultipart()
         .readAllParts()
         .filterIsInstance<PartData.FileItem>()
-    if (parts.isEmpty()) showErrorPage("Did not receive file")
-    val filename = parts.first().originalFileName ?: showLoggedInErrorPage("File does not have a name")
+    if (parts.isEmpty()) showUploadErrorPage("Did not receive file")
+    val filename = parts.first().originalFileName ?: showUploadErrorPage("File does not have a name")
     val file = schems.file(filename, mustExist = false)
     file.outputStream().buffered().use { destination ->
         parts.forEach { part ->
             part.streamProvider().use { it.copyTo(destination) }
         }
+    }
+    if (!file.isValidSchematic()) {
+        file.delete()
+        showUploadErrorPage("File is not a true schematic file")
     }
     call.respondRedirect("/schems")
 }
