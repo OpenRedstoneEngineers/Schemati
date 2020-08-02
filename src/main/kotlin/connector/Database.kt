@@ -13,7 +13,13 @@ interface Database {
     fun unload()
 }
 
-class NetworkDatabase(port: Int = 3306, host: String = "localhost", database: String, username: String, password: String): Database {
+class NetworkDatabase(
+    private val port: Int = 3306,
+    private val host: String = "localhost",
+    val database: String,
+    val username: String,
+    val password: String
+): Database {
     private val toUser: (Row) -> User = { row ->
         User(
             UUID.fromString(row.string("m_uuid")),
@@ -22,10 +28,16 @@ class NetworkDatabase(port: Int = 3306, host: String = "localhost", database: St
         )
     }
 
-    private val connection: Session = session("jdbc:mysql://${host}:${port}/${database}", username, password)
+    private var connection: Session = load()
+
+    private fun load() =
+        session("jdbc:mysql://${host}:${port}/${database}", username, password)
 
     override fun findUserByDiscordId(discordId: String): User? {
         val selectUserFromDiscordId = sqlQuery("SELECT * FROM nu_users WHERE discord_id LIKE ?", discordId)
+        if (!connection.connection.isValid(5)) {
+            connection = load()
+        }
         return connection.first(selectUserFromDiscordId, toUser)
     }
 
