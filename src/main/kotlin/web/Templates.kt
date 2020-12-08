@@ -335,7 +335,7 @@ class FooterTemplate(var loggedIn : Boolean = false) : Template<FlowContent> {
             }
             a ("https://openredstone.org") { +"openredstone"}
             +" | "
-            a ("https://forum.openredstone.org") { +"forum"}
+            a ("https://discourse.openredstone.org") { +"forum"}
             +" | "
             a ("https://openredstone.org/discord") { +"discord"}
         }
