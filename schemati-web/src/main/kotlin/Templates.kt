@@ -1,4 +1,4 @@
-package schemati.web
+package org.openredstone.schemati.web
 
 import io.ktor.html.*
 import kotlinx.html.*

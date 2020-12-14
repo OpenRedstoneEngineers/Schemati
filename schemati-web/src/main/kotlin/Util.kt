@@ -1,4 +1,4 @@
-package schemati.web
+package org.openredstone.schemati.web
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.ktor.application.ApplicationCall

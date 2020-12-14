@@ -1,13 +1,14 @@
-package schemati
+package org.openredstone.schemati.plugin
 
 import co.aikar.commands.*
 import com.sk89q.worldedit.bukkit.WorldEditPlugin
 import io.ktor.server.engine.ApplicationEngine
 import org.bukkit.plugin.java.JavaPlugin
-import schemati.connector.Database
-import schemati.connector.NetworkDatabase
-import schemati.web.AuthConfig
-import schemati.web.startWeb
+import org.openredstone.schemati.core.*
+import org.openredstone.schemati.web.Database
+import org.openredstone.schemati.web.NetworkDatabase
+import org.openredstone.schemati.web.AuthConfig
+import org.openredstone.schemati.web.startWeb
 import java.io.File
 import java.util.*
 import java.util.logging.Level
@@ -25,7 +26,6 @@ class Schemati : JavaPlugin() {
     ): Boolean {
         logger.log(Level.SEVERE, "Error while executing command", throwable)
         val exception = throwable as? SchematicsException ?: return false
-        // TODO: figure out what to do with sendError
         val message = exception.message ?: "Something went wrong!"
         sender.sendMessage("[Schemati] $message")
         return true

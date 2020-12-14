@@ -1,4 +1,4 @@
-package schemati
+package org.openredstone.schemati.plugin
 
 import co.aikar.commands.BaseCommand
 import co.aikar.commands.BukkitCommandCompletionContext
@@ -21,6 +21,9 @@ import com.sk89q.worldedit.util.formatting.text.event.HoverEvent
 import com.sk89q.worldedit.util.formatting.text.format.TextColor
 import org.bukkit.ChatColor
 import org.bukkit.entity.Player
+import org.openredstone.schemati.core.PlayerSchematics
+import org.openredstone.schemati.core.Schematics
+import org.openredstone.schemati.core.SchematicsException
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException

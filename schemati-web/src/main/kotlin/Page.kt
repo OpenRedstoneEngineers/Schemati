@@ -1,26 +1,16 @@
-package schemati.web
+package org.openredstone.schemati.web
 
-import io.ktor.application.ApplicationCall
-import io.ktor.auth.OAuthAccessTokenResponse
-import io.ktor.auth.authentication
-import io.ktor.html.respondHtmlTemplate
-import io.ktor.http.ContentDisposition
-import io.ktor.http.HttpHeaders
-import io.ktor.http.content.PartData
-import io.ktor.http.content.readAllParts
-import io.ktor.http.content.streamProvider
-import io.ktor.request.receiveMultipart
-import io.ktor.response.header
-import io.ktor.response.respondFile
-import io.ktor.response.respondRedirect
-import io.ktor.sessions.clear
-import io.ktor.sessions.get
-import io.ktor.sessions.sessions
-import io.ktor.sessions.set
+import io.ktor.application.*
+import io.ktor.auth.*
+import io.ktor.html.*
+import io.ktor.http.*
+import io.ktor.http.content.*
+import io.ktor.request.*
+import io.ktor.response.*
+import io.ktor.sessions.*
 import kotlinx.html.p
-import schemati.PlayerSchematics
-import schemati.connector.Database
-import schemati.isValidSchematic
+import org.openredstone.schemati.core.PlayerSchematics
+import org.openredstone.schemati.core.isValidSchematic
 import java.time.Duration
 import java.time.Instant
 

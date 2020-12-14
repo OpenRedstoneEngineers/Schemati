@@ -1,4 +1,4 @@
-package schemati
+package org.openredstone.schemati.core
 
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats
 import java.io.File

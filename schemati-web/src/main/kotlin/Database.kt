@@ -1,4 +1,4 @@
-package schemati.connector
+package org.openredstone.schemati.web
 
 import com.vladsch.kotlin.jdbc.Row
 import com.vladsch.kotlin.jdbc.Session

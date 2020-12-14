@@ -1,4 +1,4 @@
-package schemati.web
+package org.openredstone.schemati.web
 
 import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
@@ -22,9 +22,8 @@ import io.ktor.server.netty.Netty
 import io.ktor.sessions.*
 import io.ktor.util.pipeline.PipelineContext
 import kotlinx.html.p
-import schemati.Schematics
-import schemati.SchematicsException
-import schemati.connector.Database
+import org.openredstone.schemati.core.Schematics
+import org.openredstone.schemati.core.SchematicsException
 import java.util.*
 
 const val discordApiBase = "https://discordapp.com/api/"

@@ -1,4 +1,4 @@
-package schemati.web
+package org.openredstone.schemati.web
 
 import kotlinx.css.*
 import kotlinx.css.Float
