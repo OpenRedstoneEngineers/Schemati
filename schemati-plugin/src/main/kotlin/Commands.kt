@@ -40,6 +40,7 @@ class Commands(private val worldEdit: WorldEdit, private val url: String, privat
     @Default
     @Syntax("[number]")
     @Subcommand("list")
+    @CommandPermission("schemati.schematics.list")
     fun list(player: Player, schems: PlayerSchematics, @Default("1") page: Int) {
         val files = schems.list()
         val paginationBox = SchematicsPaginationBox(files, "Schematics", "//schematics list %page%")
@@ -53,6 +54,7 @@ class Commands(private val worldEdit: WorldEdit, private val url: String, privat
 
     @Subcommand("rename")
     @CommandAlias("/rename")
+    @CommandPermission("schemati.schematics.rename")
     @CommandCompletion("@schematics")
     fun rename(player: Player, schems: PlayerSchematics, filename: String, newName: String) {
         schems.rename(filename, newName)
@@ -62,6 +64,7 @@ class Commands(private val worldEdit: WorldEdit, private val url: String, privat
     @Subcommand("delete")
     @CommandAlias("/delete")
     @CommandCompletion("@schematics")
+    @CommandPermission("schemati.schematics.delete")
     fun delete(player: Player, schems: PlayerSchematics, filename: String) {
         schems.delete(filename)
         player.sendBasic("Deleted schematic $filename")
@@ -70,6 +73,7 @@ class Commands(private val worldEdit: WorldEdit, private val url: String, privat
     @Subcommand("download")
     @CommandAlias("/download")
     @CommandCompletion("@schematics")
+    @CommandPermission("schemati.schematics.download")
     fun download(player: Player, schems: PlayerSchematics, filename: String) {
         val file = schems.file(filename)
         val key = generateKey()
@@ -86,6 +90,7 @@ class Commands(private val worldEdit: WorldEdit, private val url: String, privat
     @Subcommand("save")
     @CommandAlias("/save")
     @CommandCompletion("@schematics")
+    @CommandPermission("schemati.schematics.save")
     fun save(player: Player, schems: PlayerSchematics, filename: String) {
         val file = schems.file(
             if ("." !in filename) {
@@ -114,6 +119,7 @@ class Commands(private val worldEdit: WorldEdit, private val url: String, privat
     @Subcommand("load")
     @CommandAlias("/load")
     @CommandCompletion("@schematics")
+    @CommandPermission("schemati.schematics.load")
     fun load(player: Player, schems: PlayerSchematics, filename: String) {
         val file = schems.file(filename)
         val format = ClipboardFormats.findByFile(file)
