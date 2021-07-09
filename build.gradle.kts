@@ -14,7 +14,7 @@ allprojects {
         mavenCentral()
         maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
         maven("https://oss.sonatype.org/content/groups/public/")
-        maven("http://maven.enginehub.org/repo/")
+        maven("https://maven.enginehub.org/repo/")
         maven("https://dl.bintray.com/adhesivee/oauth2-server")
         maven("https://repo.aikar.co/content/groups/aikar/")
     }
