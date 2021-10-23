@@ -53,6 +53,8 @@ class Schemati : JavaPlugin() {
 
         networkDatabase = config.getConfigurationSection("network_database")!!.run {
             NetworkDatabase(
+                port = getInt("port"),
+                host = getString("host")!!,
                 database = getString("database")!!,
                 username = getString("username")!!,
                 password = getString("password")!!

@@ -14,11 +14,11 @@ interface Database {
 }
 
 class NetworkDatabase(
-    private val port: Int = 3306,
-    private val host: String = "localhost",
-    val database: String,
-    val username: String,
-    val password: String
+    private val port: Int,
+    private val host: String,
+    private val database: String,
+    private val username: String,
+    private val password: String
 ): Database {
     private val toUser: (Row) -> User = { row ->
         User(
