@@ -6,7 +6,7 @@ plugins {
     id("com.github.johnrengelman.shadow")
 }
 
-val ktorVersion = "1.4.3"
+val ktorVersion = "1.6.4"
 
 dependencies {
     implementation(project(":schemati-core"))

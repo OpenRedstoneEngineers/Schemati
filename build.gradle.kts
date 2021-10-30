@@ -1,13 +1,13 @@
 plugins {
-    kotlin("jvm") version "1.4.20" apply false
-    kotlin("kapt") version "1.4.20" apply false
+    kotlin("jvm") version "1.5.31" apply false
+    kotlin("kapt") version "1.5.31" apply false
     id("com.github.johnrengelman.shadow") version "2.0.4" apply false
 }
 
 
 allprojects {
     group = "org.openredstone.schemati"
-    version = "1.1"
+    version = "1.1.1"
 
     repositories {
         jcenter()
