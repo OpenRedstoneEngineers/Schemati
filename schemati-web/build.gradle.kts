@@ -24,6 +24,9 @@ dependencies {
 
     implementation(group = "mysql", name = "mysql-connector-java", version = "8.0.20")
     implementation(group = "com.vladsch.kotlin-jdbc", name = "kotlin-jdbc", version = "0.5.0")
+
+    // idk? only for testing or something, cuz the server probably provides it anyway
+//    implementation("org.slf4j:slf4j-simple:1.7.32")
 }
 
 tasks.build {
