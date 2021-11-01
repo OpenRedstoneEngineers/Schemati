@@ -7,7 +7,7 @@ plugins {
 
 allprojects {
     group = "org.openredstone.schemati"
-    version = "1.1.1"
+    version = "1.1.2"
 
     repositories {
         jcenter()
