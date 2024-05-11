@@ -314,10 +314,7 @@ class LandingTemplate : Template<HTML> {
                     style = "padding-top:10px;"
                     a ("/login") {
                         id = "loginWithDiscord"
-                        +"Login with "
-                        img(src = "https://discord.com/assets/f72fbed55baa5642d5a0348bab7d7226.png") {
-                            id = "discordLoginIcon"
-                        }
+                        +"Login with Discord"
                     }
                 }
             }

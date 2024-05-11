@@ -22,9 +22,9 @@ class NetworkDatabase(
 ): Database {
     private val toUser: (Row) -> User = { row ->
         User(
-            UUID.fromString(row.string("m_uuid")),
-            row.string("discord_id"),
-            row.string("ign")
+            UUID.fromString(row.string("user_uuid")),
+            row.string("user_discord_id"),
+            row.string("user_ign")
         )
     }
 
@@ -34,7 +34,7 @@ class NetworkDatabase(
         session("jdbc:mysql://${host}:${port}/${database}", username, password)
 
     override fun findUserByDiscordId(discordId: String): User? {
-        val selectUserFromDiscordId = sqlQuery("SELECT * FROM nu_users WHERE discord_id LIKE ?", discordId)
+        val selectUserFromDiscordId = sqlQuery("SELECT * FROM linkore_user WHERE user_discord_id LIKE ?", discordId)
         if (!connection.connection.isValid(5)) {
             connection = load()
         }
