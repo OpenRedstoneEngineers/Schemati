@@ -139,7 +139,7 @@ class SchemsRenameTemplate(var filename : String) : Template<HTML> {
                     }
                     +"?"
                 }
-                form(action = "/schems/rename/") {
+                form(action = "/schems/rename") {
                     input(type = InputType.text, name = "file") {
                         hidden = true
                         value = filename
@@ -183,7 +183,7 @@ class SchemsDeleteTemplate(var filename : String) : Template<HTML> {
                     }
                     +"?"
                 }
-                form(action = "/schems/delete/") {
+                form(action = "/schems/delete") {
                     input(type = InputType.text, name = "file") {
                         hidden = true
                         value = filename
@@ -237,7 +237,7 @@ class SchemsListTemplate(val files : List<String>) : Template<HTML> {
                                 style = "display:none;"
                                 span {
                                     style = "font-size:0.8em;"
-                                    a("/schems/rename/?file=$name") {
+                                    a("/schems/rename?file=$name") {
                                         style = "color:#444444;"
                                         +"Rename "
                                         i {
@@ -248,7 +248,7 @@ class SchemsListTemplate(val files : List<String>) : Template<HTML> {
                                 +"  |  "
                                 span {
                                     style = "font-size:0.8em;"
-                                    a("/schems/delete/?file=$name") {
+                                    a("/schems/delete?file=$name") {
                                         style = "color:#444444;"
                                         +"Delete "
                                         i {
@@ -259,7 +259,7 @@ class SchemsListTemplate(val files : List<String>) : Template<HTML> {
                                 +"  |  "
                                 span {
                                     style = "font-size:0.8em;"
-                                    a("/schems/download/?file=$name") {
+                                    a("/schems/download?file=$name") {
                                         style = "color:#444444;"
                                         +"Download "
                                         i {

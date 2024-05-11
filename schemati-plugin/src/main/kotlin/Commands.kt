@@ -81,7 +81,7 @@ class Commands(private val worldEdit: WorldEdit, private val url: String, privat
         file.copyTo(copiedFile)
         player.sendFormatted(
             TextComponent.of("Click to download schematic $filename.")
-                .clickEvent(ClickEvent.openUrl("${url}/download/?file=$key"))
+                .clickEvent(ClickEvent.openUrl("${url}/download?file=$key"))
                 .hoverEvent(HoverEvent.showText(TextComponent.of("Download")))
             , prefix = true
         )
