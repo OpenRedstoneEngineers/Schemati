@@ -23,16 +23,17 @@ import io.ktor.util.pipeline.PipelineContext
 import kotlinx.html.p
 import org.openredstone.schemati.core.Schematics
 import org.openredstone.schemati.core.SchematicsException
+import java.io.File
 import java.util.*
 
 const val discordApiBase = "https://discordapp.com/api/"
 
-fun startWeb(port: Int, baseUri: String, database: Database, authConfig: AuthConfig, schems: Schematics): ApplicationEngine =
-    embeddedServer(Netty, port = port, module = makeSchemsApp(database, baseUri, authConfig, schems)).start()
+fun startWeb(port: Int, baseUri: String, database: Database, authConfig: AuthConfig, schems: Schematics, sessionDir: File): ApplicationEngine =
+    embeddedServer(Netty, port = port, module = makeSchemsApp(database, baseUri, authConfig, schems, sessionDir)).start()
 
 data class AuthConfig(val clientId: String, val clientSecret: String, val scopes: List<String>)
 
-fun makeSchemsApp(networkDatabase: Database, baseUri: String, authConfig: AuthConfig, schems: Schematics): Application.() -> Unit = {
+fun makeSchemsApp(networkDatabase: Database, baseUri: String, authConfig: AuthConfig, schems: Schematics, sessionDir: File): Application.() -> Unit = {
     val loginProvider = OAuthServerSettings.OAuth2ServerSettings(
         name = "Discord",
         authorizeUrl = "${discordApiBase}oauth2/authorize",
@@ -80,8 +81,9 @@ fun makeSchemsApp(networkDatabase: Database, baseUri: String, authConfig: AuthCo
 
     install(DefaultHeaders)
 
+    deleteExpiredSessions(sessionDir)
     install(Sessions) {
-        cookie<LoggedSession>("sessionId", storage = SessionStorageMemory())
+        cookie<LoggedSession>("sessionId", storage = directorySessionStorage(sessionDir))
     }
 
     install(Authentication) {
@@ -135,6 +137,13 @@ fun makeSchemsApp(networkDatabase: Database, baseUri: String, authConfig: AuthCo
             }
         }
     }
+}
+
+// Ktor never deletes session files, but rewrites one on each request, so a file older
+// than the cookie's lifetime is an expired session. Directories go once they're empty.
+private fun deleteExpiredSessions(sessionDir: File) {
+    val cutoff = System.currentTimeMillis() - DEFAULT_SESSION_MAX_AGE * 1000
+    sessionDir.walkBottomUp().filter { it != sessionDir && (it.isDirectory || it.lastModified() < cutoff) }.forEach { it.delete() }
 }
 
 private fun PipelineContext<Unit, ApplicationCall>.user() =
