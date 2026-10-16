@@ -17,5 +17,6 @@ allprojects {
         maven("https://maven.enginehub.org/repo/")
         maven("https://dl.bintray.com/adhesivee/oauth2-server")
         maven("https://repo.aikar.co/content/groups/aikar/")
+        maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-js-wrappers")
     }
 }
