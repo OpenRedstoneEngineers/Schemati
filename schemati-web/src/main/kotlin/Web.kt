@@ -83,7 +83,9 @@ fun makeSchemsApp(networkDatabase: Database, baseUri: String, authConfig: AuthCo
 
     deleteExpiredSessions(sessionDir)
     install(Sessions) {
-        cookie<LoggedSession>("sessionId", storage = directorySessionStorage(sessionDir))
+        cookie<LoggedSession>("sessionId", storage = directorySessionStorage(sessionDir)) {
+            cookie.maxAgeInSeconds = SESSION_MAX_AGE
+        }
     }
 
     install(Authentication) {
@@ -139,10 +141,12 @@ fun makeSchemsApp(networkDatabase: Database, baseUri: String, authConfig: AuthCo
     }
 }
 
+private const val SESSION_MAX_AGE = 30L * 24 * 60 * 60
+
 // Ktor never deletes session files, but rewrites one on each request, so a file older
 // than the cookie's lifetime is an expired session. Directories go once they're empty.
 private fun deleteExpiredSessions(sessionDir: File) {
-    val cutoff = System.currentTimeMillis() - DEFAULT_SESSION_MAX_AGE * 1000
+    val cutoff = System.currentTimeMillis() - SESSION_MAX_AGE * 1000
     sessionDir.walkBottomUp().filter { it != sessionDir && (it.isDirectory || it.lastModified() < cutoff) }.forEach { it.delete() }
 }
 
