@@ -79,7 +79,8 @@ class Schemati : JavaPlugin() {
                 config.getConfigurationSection("web")!!.getString("url")!!,
                 networkDatabase!!,
                 authConfig,
-                schems
+                schems,
+                File(dataFolder, "sessions")
             )
         }
     }

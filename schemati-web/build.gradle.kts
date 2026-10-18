@@ -15,6 +15,7 @@ dependencies {
     // delete api
     api(group = "io.ktor", name = "ktor-server-netty", version = ktorVersion)
     implementation(group = "io.ktor", name = "ktor-auth", version = ktorVersion)
+    implementation(group = "io.ktor", name = "ktor-server-sessions", version = ktorVersion)
     implementation(group = "io.ktor", name = "ktor-client-apache", version = ktorVersion)
     implementation(group = "io.ktor", name = "ktor-html-builder", version = ktorVersion)
 
