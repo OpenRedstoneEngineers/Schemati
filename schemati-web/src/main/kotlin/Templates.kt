@@ -1,6 +1,6 @@
 package org.openredstone.schemati.web
 
-import io.ktor.html.*
+import io.ktor.server.html.*
 import kotlinx.html.*
 
 class LoggedInBaseTemplate : Template<HTML> {

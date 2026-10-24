@@ -2,7 +2,7 @@ package org.openredstone.schemati.plugin
 
 import co.aikar.commands.*
 import com.sk89q.worldedit.bukkit.WorldEditPlugin
-import io.ktor.server.engine.ApplicationEngine
+import io.ktor.server.engine.EmbeddedServer
 import org.bukkit.plugin.java.JavaPlugin
 import org.openredstone.schemati.core.*
 import org.openredstone.schemati.web.Database
@@ -14,7 +14,7 @@ import java.util.*
 import java.util.logging.Level
 
 class Schemati : JavaPlugin() {
-    private var web: ApplicationEngine? = null
+    private var web: EmbeddedServer<*, *>? = null
     private var networkDatabase: Database? = null
 
     private fun handleCommandException(

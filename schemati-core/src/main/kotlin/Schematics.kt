@@ -56,11 +56,14 @@ class PlayerSchematics(schematicsDir: File, uuid: UUID) {
     }
 }
 
-public fun File.isValidSchematic() =
-    name.isValidName() && ClipboardFormats.findByFile(this) != null
+fun File.isValidSchematic() =
+    name.isValidName() && (
+            (ClipboardFormats.findByFile(this) != null)
+            || (this.length() < (16 * 1024 * 1024))
+    )
 
 private fun String.isValidName() =
-    this.matches(Regex("""[a-zA-Z0-9_.]+\.schem(atic)?"""))
+    this.matches(Regex("""[a-zA-Z0-9_.]+\.(schem(atic)?|bin)"""))
 
 private fun File.ensureDirectoryExists() {
     if (exists()) {

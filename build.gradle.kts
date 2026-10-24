@@ -1,16 +1,15 @@
 plugins {
-    kotlin("jvm") version "1.5.31" apply false
-    kotlin("kapt") version "1.5.31" apply false
-    id("com.github.johnrengelman.shadow") version "2.0.4" apply false
+    kotlin("jvm") version "2.4.0" apply false
+    kotlin("kapt") version "2.4.0" apply false
+    id("com.gradleup.shadow") version "9.4.2" apply false
 }
 
 
 allprojects {
     group = "org.openredstone.schemati"
-    version = "1.1.2"
+    version = "1.2"
 
     repositories {
-        jcenter()
         mavenCentral()
         maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
         maven("https://oss.sonatype.org/content/groups/public/")

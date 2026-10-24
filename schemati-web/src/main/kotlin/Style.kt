@@ -2,7 +2,8 @@ package org.openredstone.schemati.web
 
 import kotlinx.css.*
 import kotlinx.css.Float
-import kotlinx.css.properties.*
+import kotlinx.css.properties.BoxShadow
+import kotlinx.css.properties.TextDecoration
 
 fun getStyle(): String {
     return CSSBuilder().apply {

@@ -1,25 +1,18 @@
 package org.openredstone.schemati.web
 
-import io.ktor.application.Application
-import io.ktor.application.ApplicationCall
-import io.ktor.application.call
-import io.ktor.application.install
-import io.ktor.auth.Authentication
-import io.ktor.auth.OAuthServerSettings
-import io.ktor.auth.authenticate
-import io.ktor.auth.oauth
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.apache.Apache
-import io.ktor.features.*
-import io.ktor.html.respondHtmlTemplate
-import io.ktor.http.HttpMethod
-import io.ktor.response.respondRedirect
-import io.ktor.routing.*
-import io.ktor.server.engine.ApplicationEngine
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
-import io.ktor.sessions.*
-import io.ktor.util.pipeline.PipelineContext
+import io.ktor.client.*
+import io.ktor.client.engine.apache5.*
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.cio.*
+import io.ktor.server.engine.*
+import io.ktor.server.html.*
+import io.ktor.server.plugins.defaultheaders.*
+import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import io.ktor.server.sessions.*
 import kotlinx.html.p
 import org.openredstone.schemati.core.Schematics
 import org.openredstone.schemati.core.SchematicsException
@@ -28,8 +21,8 @@ import java.util.*
 
 const val discordApiBase = "https://discordapp.com/api/"
 
-fun startWeb(port: Int, baseUri: String, database: Database, authConfig: AuthConfig, schems: Schematics, sessionDir: File): ApplicationEngine =
-    embeddedServer(Netty, port = port, module = makeSchemsApp(database, baseUri, authConfig, schems, sessionDir)).start()
+fun startWeb(port: Int, baseUri: String, database: Database, authConfig: AuthConfig, schems: Schematics, sessionDir: File): EmbeddedServer<*, *> =
+    embeddedServer(CIO, port = port, module = makeSchemsApp(database, baseUri, authConfig, schems, sessionDir)).start(wait = false)
 
 data class AuthConfig(val clientId: String, val clientSecret: String, val scopes: List<String>)
 
@@ -45,24 +38,24 @@ fun makeSchemsApp(networkDatabase: Database, baseUri: String, authConfig: AuthCo
     )
 
     install(StatusPages) {
-        exception<RedirectException> { cause ->
+        exception<RedirectException> { call, cause ->
             call.respondRedirect(cause.destination, permanent = false)
         }
-        exception<ErrorPageException> { cause ->
+        exception<ErrorPageException> { call, cause ->
             call.respondHtmlTemplate(ErrorTemplate()) {
                 errorContent {
                     p { +cause.content }
                 }
             }
         }
-        exception<SchematicUploadException> { cause ->
+        exception<SchematicUploadException> { call, cause ->
             call.respondHtmlTemplate(UploadErrorTemplate()) {
                 errorContent {
                     p { +cause.content}
                 }
             }
         }
-        exception<LoggedInErrorException> { cause ->
+        exception<LoggedInErrorException> { call, cause ->
             call.respondHtmlTemplate(LoggedInErrorTemplate()) {
                 errorContent {
                     p { +cause.content }
@@ -70,7 +63,7 @@ fun makeSchemsApp(networkDatabase: Database, baseUri: String, authConfig: AuthCo
             }
         }
         // TODO: are these logged?
-        exception<SchematicsException> { cause ->
+        exception<SchematicsException> { call, cause ->
             call.respondHtmlTemplate(LoggedInErrorTemplate()) {
                 errorContent {
                     p { +(cause.message ?: "Something went wrong!") }
@@ -90,7 +83,7 @@ fun makeSchemsApp(networkDatabase: Database, baseUri: String, authConfig: AuthCo
 
     install(Authentication) {
         oauth("discordOauth") {
-            client = HttpClient(Apache)
+            client = HttpClient(Apache5)
             providerLookup = {
                 loginProvider
             }
@@ -98,7 +91,7 @@ fun makeSchemsApp(networkDatabase: Database, baseUri: String, authConfig: AuthCo
         }
     }
 
-    install(Routing) {
+    routing {
         get("/") {
             pageLanding(call)
         }
@@ -150,7 +143,7 @@ private fun deleteExpiredSessions(sessionDir: File) {
     sessionDir.walkBottomUp().filter { it != sessionDir && (it.isDirectory || it.lastModified() < cutoff) }.forEach { it.delete() }
 }
 
-private fun PipelineContext<Unit, ApplicationCall>.user() =
+private fun RoutingContext.user() =
     call.sessions.get<LoggedSession>() ?: redirectTo("/")
 
 class SchematicUploadException(val content: String) : Exception()

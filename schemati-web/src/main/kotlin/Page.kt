@@ -1,18 +1,21 @@
 package org.openredstone.schemati.web
 
-import io.ktor.application.*
-import io.ktor.auth.*
-import io.ktor.html.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.request.*
-import io.ktor.response.*
-import io.ktor.sessions.*
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.html.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.sessions.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.readBytes
 import kotlinx.html.p
 import org.openredstone.schemati.core.PlayerSchematics
 import org.openredstone.schemati.core.isValidSchematic
 import java.time.Duration
 import java.time.Instant
+import kotlin.io.use
 
 suspend fun pageLanding(call: ApplicationCall) {
     val session = call.sessions.get<LoggedSession>()
@@ -101,17 +104,26 @@ suspend fun pageSchemsDelete(call: ApplicationCall, schems: PlayerSchematics) {
 
 // Web specific functionality
 
+data class UploadedFile(val name: String?, val bytes: ByteArray)
+
 suspend fun pageSchemsUpload(call: ApplicationCall, schems: PlayerSchematics) {
-    val parts = call
+    val files = mutableListOf<UploadedFile>()
+    call
         .receiveMultipart()
-        .readAllParts()
-        .filterIsInstance<PartData.FileItem>()
-    if (parts.isEmpty()) showUploadErrorPage("Did not receive file")
-    val filename = parts.first().originalFileName ?: showUploadErrorPage("File does not have a name")
+        .forEachPart { part ->
+            if (part is PartData.FileItem) {
+                val name = part.originalFileName
+                val bytes = part.provider().readBuffer().use { it.readBytes() }
+                files += UploadedFile(name, bytes)
+            }
+            part.release()
+        }
+    if (files.isEmpty()) showUploadErrorPage("Did not receive file")
+    val filename = files.first().name ?: showUploadErrorPage("File does not have a name")
     val file = schems.file(filename, mustExist = false)
     file.outputStream().buffered().use { destination ->
-        parts.forEach { part ->
-            part.streamProvider().use { it.copyTo(destination) }
+        files.forEach { part ->
+            part.bytes.inputStream().use { it.copyTo(destination) }
         }
     }
     if (!file.isValidSchematic()) {
