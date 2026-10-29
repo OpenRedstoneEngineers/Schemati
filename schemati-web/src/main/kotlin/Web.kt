@@ -8,6 +8,7 @@ import io.ktor.server.auth.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
 import io.ktor.server.html.*
+import io.ktor.server.plugins.conditionalheaders.*
 import io.ktor.server.plugins.defaultheaders.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
@@ -73,6 +74,7 @@ fun makeSchemsApp(networkDatabase: Database, baseUri: String, authConfig: AuthCo
     }
 
     install(DefaultHeaders)
+    install(ConditionalHeaders)
 
     deleteExpiredSessions(sessionDir)
     install(Sessions) {

@@ -25,6 +25,7 @@ dependencies {
     implementation("io.ktor:ktor-server-cio")
     implementation("io.ktor:ktor-server-status-pages")
     implementation("io.ktor:ktor-server-default-headers")
+    implementation("io.ktor:ktor-server-conditional-headers")
     implementation("io.ktor:ktor-client-apache5")
 
     implementation(group = "org.jetbrains", name = "kotlin-css", version = "1.0.0-pre.104-kotlin-1.3.72")
