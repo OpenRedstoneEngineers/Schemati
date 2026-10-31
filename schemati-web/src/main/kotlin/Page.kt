@@ -74,7 +74,7 @@ suspend fun pageLogin(call: ApplicationCall, networkDatabase: Database) {
 // Common functionality with ingame commands
 
 suspend fun pageSchems(call: ApplicationCall, schems: PlayerSchematics, user: LoggedSession) {
-    call.respondHtmlTemplate(SchemsListTemplate(schems.list())) {
+    call.respondHtmlTemplate(SchemsListTemplate(schems.list().map { schems.file(it, mustExist = false) })) {
         username {
             +user.userName
         }

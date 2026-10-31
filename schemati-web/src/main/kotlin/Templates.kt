@@ -2,6 +2,7 @@ package org.openredstone.schemati.web
 
 import io.ktor.server.html.*
 import kotlinx.html.*
+import java.io.File
 
 class LoggedInBaseTemplate : Template<HTML> {
     val content = Placeholder<FlowContent>()
@@ -208,7 +209,7 @@ class SchemsDeleteTemplate(var filename : String) : Template<HTML> {
     }
 }
 
-class SchemsListTemplate(val files : List<String>) : Template<HTML> {
+class SchemsListTemplate(val files : List<File>) : Template<HTML> {
     val loggedInBaseTemplate : LoggedInBaseTemplate = LoggedInBaseTemplate()
     val username = Placeholder<FlowContent>()
     override fun HTML.apply() {
@@ -223,12 +224,14 @@ class SchemsListTemplate(val files : List<String>) : Template<HTML> {
                 // I hate doing this instead of using the API, but its the only way to get it to work
                 ul {
                     id = "fileListing"
-                    files.forEachIndexed { index, name ->
+                    files.forEachIndexed { index, file ->
+                        val name = file.name
                         li {
                             classes = setOf("fileEntry")
                             div {
                                 classes = setOf("fileEntryName middleAlign")
                                 id = "fileName$index"
+                                attributes["data-modified"] = file.lastModified().toString()
                                 +name
                             }
                             div {
