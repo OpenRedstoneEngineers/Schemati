@@ -37,10 +37,6 @@ dependencies {
 
 }
 
-tasks.shadowJar {
-    relocate("io.netty", "your.plugin.shaded.netty")
-}
-
 tasks.build {
     dependsOn(tasks.shadowJar)
 }
